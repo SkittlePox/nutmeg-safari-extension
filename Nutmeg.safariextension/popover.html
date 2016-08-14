@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hello World</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        table,
+        th,
+        td {
+            font-size: 11pt
+        }
+        td {
+            width: 200px;
+        }
+    </style>
+    <script>
+        safari.application.addEventListener("popover", popoverHandler, true);
+
+        function popoverHandler(foo) {
+            table = document.getElementById("table");
+            nodes = safari.extension.globalPage.contentWindow.nodes
+            if (nodes.length != 0) {
+                table.innerHTML = "<tr><th>Parent</th><th>Child</th></tr>";
+            }
+            for (var i = 0; i < nodes.length; i++) {
+                table.innerHTML += "<tr><td>" + nodes[i].parentTitle + "</td><td>" + nodes[i].childTitle + "</td></tr>";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <center>
+        <h3>Nodes</h3>
+        <br>
+        <table id="table">
+        </table>
+    </center>
+</body>
+
+</html>

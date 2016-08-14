@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<script>
+    var nodes = []
+    safari.application.addEventListener("message", nodeIncoming, false);
+    safari.application.addEventListener("navigate", childTitleUpdate, true);
+
+    function nodeIncoming(msg) {
+        if(msg.name != "newNode") return;
+        for(var i = 0; i < nodes.length; i++) { // Check if node already exists
+            if(nodes[i].parentURL == msg.message.parentURL && nodes[i].childURL == msg.message.childURL || nodes[i].parentURL == msg.message.childURL && nodes[i].childURL == msg.message.parentURL) return;
+        }
+        nodes.push(msg.message);    // If not, add it to nodes
+    }
+
+    function childTitleUpdate(e) {  // Updates child node title
+        for(var i = nodes.length-1; i >= 0; i--) {  // Goes backwards and stops at the first node with a known child title
+            if(nodes[i].childTitle == "" && nodes[i].childURL == e.target.url) {
+                nodes[i].childTitle = e.target.title;
+            } else break;
+        }
+    }
+</script>
