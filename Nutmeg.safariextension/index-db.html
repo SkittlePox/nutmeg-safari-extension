@@ -12,10 +12,11 @@
             this.childrenURLs = childrenURLs;
         }
 
-        safari.application.addEventListener("message", navNodeIncoming, false);
-        safari.application.addEventListener("navigate", childTitleUpdate, false);
         var db;
-        connect2DB();
+        connect2DB();   // Establish connection to database: assign to variable db
+
+        safari.application.addEventListener("message", navNodeIncoming, false);
+        safari.application.addEventListener("navigate", childTitleCheck, false);
 
         function connect2DB() {
             var openRequest = indexedDB.open("nutmeg-shedV2", 1);
@@ -41,7 +42,6 @@
 
         function navNodeIncoming(msg) {
             if (msg.name != "newNode") return;
-            connect2DB(); // Establish connection to database: assign to variable db
             navNode = msg.message;
 
             var store = db.transaction([navNode.objStore], "readwrite").objectStore(navNode.objStore); // Access object store
@@ -78,7 +78,29 @@
         }
 
         function childTitleCheck(e) {
-            
+            if(localStorage.nutmeg_rogue_URLs != null) {
+                rogueURLs = localStorage.nutmeg_rogue_URLs.split("|");
+                var index = rogueURLs.indexOf(e.target.url);
+                if (index != -1) {
+                    var store = db.transaction(["all-browsing"], "readwrite").objectStore("all-browsing"); // Access object store
+                    var fetchNodeRequest = store.get(e.target.url);
+
+                    fetchNodeRequest.onsuccess = function() {
+                        var fetchedNode = fetchNodeRequest.result;
+                        fetchedNode.title = e.target.title;
+                        var updateRequest = store.put(fetchedNode);
+                        updateRequest.onsuccess = function() {
+                            tempStr = "";
+                            for(var i = 0; i < rogueURLs.length; i++) {
+                                if(i != index) {
+                                    tempStr += rogueURLs[i] + "|";
+                                }
+                            }
+                            localStorage.nutmeg_rogue_URLs = tempStr;
+                        }
+                    }
+                }
+            }
         }
     </script>
 </body>
