@@ -13,10 +13,10 @@
         }
 
         var db;
-        connect2DB();   // Establish connection to database: assign to variable db
+        connect2DB(); // Establish connection to database: assign to variable db
 
         safari.application.addEventListener("message", navNodeIncoming, false);
-        safari.application.addEventListener("navigate", childTitleCheck, true);
+        safari.application.addEventListener("navigate", childTitleUpdate, true);
 
         function connect2DB() {
             var openRequest = indexedDB.open("nutmeg-shed", 2);
@@ -53,55 +53,29 @@
                     if (fetchedNode.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
                         fetchedNode.childrenURLs.push(navNode.childURL);
                         store.put(fetchedNode);
-                        addChildCheck(store, navNode.childURL);
+                        store.add(new Node(navNode.childURL, null, []));    // Bounces if the entry already exists
                     }
                 } else {
                     store.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL]));
-                    addChildCheck(store, navNode.childURL);
+                    store.add(new Node(navNode.childURL, null, []));    // Bounces if the entry already exists
                 }
             }
         }
 
-        function addChildCheck(store, URL) {
-            if (localStorage.nutmeg_rogue_URLs != null) {
-                rogueURLs = localStorage.nutmeg_rogue_URLs.split("|");
-                if (rogueURLs.indexOf(URL) == -1) {
-                    localStorage.nutmeg_rogue_URLs += URL + "|";
-                    store.add(new Node(URL, null, []));
-                }
-            } else {
-                var addChildNodeRequest = store.add(new Node(URL, null, []));
-                addChildNodeRequest.onsuccess = function() {
-                    localStorage.nutmeg_rogue_URLs = URL + "|";
+        function childTitleUpdate(e) {  // Updates title upon page visit
+            var store = db.transaction(["all-browsing"], "readwrite").objectStore("all-browsing"); // Access object store
+            var fetchNodeRequest = store.get(e.target.url);
+
+            fetchNodeRequest.onsuccess = function() {
+                var fetchedNode = fetchNodeRequest.result;
+                if (fetchedNode) {
+                    fetchedNode.title = e.target.title;
+                    var updateRequest = store.put(fetchedNode);
                 }
             }
         }
 
-        function childTitleCheck(e) {
-            if(localStorage.nutmeg_rogue_URLs != null) {
-                rogueURLs = localStorage.nutmeg_rogue_URLs.split("|");
-                var index = rogueURLs.indexOf(e.target.url);
-                if (index != -1) {
-                    var store = db.transaction(["all-browsing"], "readwrite").objectStore("all-browsing"); // Access object store
-                    var fetchNodeRequest = store.get(e.target.url);
-
-                    fetchNodeRequest.onsuccess = function() {
-                        var fetchedNode = fetchNodeRequest.result;
-                        fetchedNode.title = e.target.title;
-                        var updateRequest = store.put(fetchedNode);
-                        updateRequest.onsuccess = function() {
-                            tempStr = "";
-                            for(var i = 0; i < rogueURLs.length; i++) {
-                                if(i != index) {
-                                    tempStr += rogueURLs[i] + "|";
-                                }
-                            }
-                            localStorage.nutmeg_rogue_URLs = tempStr.slice(0, -1);
-                        }
-                    }
-                }
-            }
-        }
+        //TODO Child check in parent node so no recursion - use time stamp
     </script>
 </body>
 
