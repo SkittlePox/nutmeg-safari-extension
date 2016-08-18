@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+
+<body>
+    <script>
+        var Node = function(url, title, childrenURLs) {
+            this.url = url;
+            this.title = title;
+            this.childrenURLs = childrenURLs;
+        }
+
+        safari.application.addEventListener("message", navNodeIncoming, false);
+        safari.application.addEventListener("navigate", childTitleUpdate, false);
+        var db;
+        connect2DB();
+
+        function connect2DB() {
+            var openRequest = indexedDB.open("nutmeg-shedV2", 1);
+
+            openRequest.onupgradeneeded = function(e) {
+                var thisDB = e.target.result;
+
+                if (!thisDB.objectStoreNames.contains("all-browsing")) {
+                    var os = thisDB.createObjectStore("all-browsing", {
+                        keyPath: "url",
+                        autoIncrement: true
+                    });
+                }
+            }
+            openRequest.onsuccess = function(e) {
+                db = e.target.result;
+            }
+            openRequest.onerror = function(e) {
+                console.log("openRequest error!");
+                console.dir(e);
+            }
+        }
+
+        function navNodeIncoming(msg) {
+            if (msg.name != "newNode") return;
+            connect2DB(); // Establish connection to database: assign to variable db
+            navNode = msg.message;
+
+            var store = db.transaction([navNode.objStore], "readwrite").objectStore(navNode.objStore); // Access object store
+            var fetchNodeRequest = store.get(navNode.parentURL);
+
+            fetchNodeRequest.onsuccess = function() {
+                var fetchedNode = fetchNodeRequest.result;
+                if (fetchedNode) {
+                    if (fetchedNode.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
+                        fetchedNode.childrenURLs.push(navNode.childURL);
+                        store.put(fetchedNode);
+                        addChildCheck(store, navNode.childURL);
+                    }
+                } else {
+                    store.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL]));
+                    addChildCheck(store, navNode.childURL);
+                }
+            }
+        }
+
+        function addChildCheck(store, URL) {
+            if (localStorage.nutmeg_rogue_URLs != null) {
+                rogueURLs = localStorage.nutmeg_rogue_URLs.split("|");
+                if (rogueURLs.indexOf(URL) == -1) {
+                    localStorage.nutmeg_rogue_URLs += URL + "|";
+                    store.add(new Node(URL, null, []));
+                }
+            } else {
+                var addChildNodeRequest = store.add(new Node(URL, null, []));
+                addChildNodeRequest.onsuccess = function() {
+                    localStorage.nutmeg_rogue_URLs = URL + "|";
+                }
+            }
+        }
+
+        function childTitleCheck(e) {
+            
+        }
+    </script>
+</body>
+
+</html>

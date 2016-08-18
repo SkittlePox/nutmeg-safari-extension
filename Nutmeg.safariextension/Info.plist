@@ -19,9 +19,9 @@
 	<key>Chrome</key>
 	<dict>
 		<key>Database Quota</key>
-		<integer>104857600</integer>
+		<integer>10485760</integer>
 		<key>Global Page</key>
-		<string>index.html</string>
+		<string>index-db.html</string>
 		<key>Popovers</key>
 		<array>
 			<dict>
@@ -53,7 +53,7 @@
 		<dict>
 			<key>End</key>
 			<array>
-				<string>injection.js</string>
+				<string>injection-db.js</string>
 			</array>
 		</dict>
 	</dict>
