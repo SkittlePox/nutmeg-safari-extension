@@ -3,7 +3,6 @@ var Node = function(parentTitle, parentURL, childURL) {
     this.parentURL = parentURL;
     this.childURL = childURL;
     this.childTitle = "";
-    // Child Title cannot be fetched at this point
 }
 
 function wasClicked(element) {

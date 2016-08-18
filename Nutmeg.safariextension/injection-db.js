@@ -3,8 +3,6 @@ var NavNode = function(objStore, parentTitle, parentURL, childURL) {
     this.parentTitle = parentTitle;
     this.parentURL = parentURL;
     this.childURL = childURL;
-    this.childTitle = "";
-    // Child Title cannot be fetched at this point
 }
 
 function wasClicked(element) {

@@ -16,10 +16,10 @@
         connect2DB();   // Establish connection to database: assign to variable db
 
         safari.application.addEventListener("message", navNodeIncoming, false);
-        safari.application.addEventListener("navigate", childTitleCheck, false);
+        safari.application.addEventListener("navigate", childTitleCheck, true);
 
         function connect2DB() {
-            var openRequest = indexedDB.open("nutmeg-shedV2", 1);
+            var openRequest = indexedDB.open("nutmeg-shed", 2);
 
             openRequest.onupgradeneeded = function(e) {
                 var thisDB = e.target.result;
@@ -96,7 +96,7 @@
                                     tempStr += rogueURLs[i] + "|";
                                 }
                             }
-                            localStorage.nutmeg_rogue_URLs = tempStr;
+                            localStorage.nutmeg_rogue_URLs = tempStr.slice(0, -1);
                         }
                     }
                 }
