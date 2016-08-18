@@ -3,6 +3,7 @@ var NavNode = function(objStore, parentTitle, parentURL, childURL) {
     this.parentTitle = parentTitle;
     this.parentURL = parentURL;
     this.childURL = childURL;
+    this.visitTime = new Date();
 }
 
 function wasClicked(element) {

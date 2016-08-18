@@ -6,17 +6,19 @@
 
 <body>
     <script>
-        var Node = function(url, title, childrenURLs) {
+        var Node = function(url, title, childrenURLs, firstVisit, lastVisit) {
             this.url = url;
             this.title = title;
             this.childrenURLs = childrenURLs;
+            this.firstVisit = firstVisit;
+            this.lastVisit = lastVisit;
         }
 
         var db;
         connect2DB(); // Establish connection to database: assign to variable db
 
         safari.application.addEventListener("message", navNodeIncoming, false);
-        safari.application.addEventListener("navigate", childTitleUpdate, true);
+        safari.application.addEventListener("navigate", visitUpdate, true);
 
         function connect2DB() {
             var openRequest = indexedDB.open("nutmeg-shed", 2);
@@ -53,16 +55,16 @@
                     if (fetchedNode.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
                         fetchedNode.childrenURLs.push(navNode.childURL);
                         store.put(fetchedNode);
-                        store.add(new Node(navNode.childURL, null, []));    // Bounces if the entry already exists
+                        store.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
                     }
                 } else {
-                    store.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL]));
-                    store.add(new Node(navNode.childURL, null, []));    // Bounces if the entry already exists
+                    store.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                    store.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
                 }
             }
         }
 
-        function childTitleUpdate(e) {  // Updates title upon page visit
+        function visitUpdate(e) { // Updates database upon page visit
             var store = db.transaction(["all-browsing"], "readwrite").objectStore("all-browsing"); // Access object store
             var fetchNodeRequest = store.get(e.target.url);
 
@@ -70,6 +72,7 @@
                 var fetchedNode = fetchNodeRequest.result;
                 if (fetchedNode) {
                     fetchedNode.title = e.target.title;
+                    fetchedNode.lastVisit = new Date();
                     var updateRequest = store.put(fetchedNode);
                 }
             }
