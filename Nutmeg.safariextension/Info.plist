@@ -26,9 +26,13 @@
 		<array>
 			<dict>
 				<key>Filename</key>
-				<string>popover-debug.html</string>
+				<string>popover-debug2.html</string>
+				<key>Height</key>
+				<integer>400</integer>
 				<key>Identifier</key>
 				<string>nutmeg-popover</string>
+				<key>Width</key>
+				<integer>400</integer>
 			</dict>
 		</array>
 		<key>Toolbar Items</key>

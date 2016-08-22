@@ -15,26 +15,42 @@
         }
 
         var db;
-        connect2DB(); // Establish connection to database: assign to variable db
+        var objStores = ["all-browsing"];
+        connect2DB(6); // Establish connection to database: assign to variable db
 
         safari.application.addEventListener("message", navNodeIncoming, false);
         safari.application.addEventListener("navigate", visitUpdate, true);
 
-        function connect2DB() {
-            var openRequest = indexedDB.open("nutmeg-shed", 2);
+        function connect2DB(version) {
+            console.log("Connecting to Database " + version);
+            var openRequest;
+            if (version != null) {
+                openRequest = indexedDB.open("nutmeg-shed", version);
+                console.log("New version");
+            } else openRequest = indexedDB.open("nutmeg-shed");
 
             openRequest.onupgradeneeded = function(e) {
+                console.log("Updating Database");
                 var thisDB = e.target.result;
 
-                if (!thisDB.objectStoreNames.contains("all-browsing")) {
-                    var os = thisDB.createObjectStore("all-browsing", {
-                        keyPath: "url",
-                        autoIncrement: true
-                    });
+                //indexedDB.deleteObjectStore("all-browsing"); // Deletes saved data
+
+                for (var i = 0; i < objStores.length; i++) {
+                    if (!thisDB.objectStoreNames.contains(objStores[i])) {
+                        var objectStore = thisDB.createObjectStore(objStores[i], {
+                            keyPath: "url",
+                            autoIncrement: true
+                        });
+                    }
                 }
             }
             openRequest.onsuccess = function(e) {
                 db = e.target.result;
+                objStores = [];
+                var tempObjStores = db.objectStoreNames;
+                for (var i = 0; i < tempObjStores.length; i++) {
+                    objStores.push(tempObjStores[i]);
+                }
             }
             openRequest.onerror = function(e) {
                 console.log("openRequest error!");
@@ -46,7 +62,14 @@
             if (msg.name != "newNode") return;
             navNode = msg.message;
 
-            var store = db.transaction([navNode.objStore], "readwrite").objectStore(navNode.objStore); // Access object store
+            if (objStores.indexOf(navNode.root) == -1) {
+                objStores.push(navNode.root);
+                console.log(objStores);
+                ver = db.version + 1;
+                connect2DB(ver);
+            }
+
+            var store = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
             var fetchNodeRequest = store.get(navNode.parentURL);
 
             fetchNodeRequest.onsuccess = function() {
@@ -56,17 +79,21 @@
                         fetchedNode.childrenURLs.push(navNode.childURL);
                         store.put(fetchedNode);
                         store.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
+                        console.log("Adding node " + navNode.childURL);
                     }
                 } else {
                     store.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                    console.log("Adding node " + navNode.parentURL);
                     store.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
+                    console.log("Adding node " + navNode.childURL);
                 }
             }
         }
 
         function visitUpdate(e) { // Updates database upon page visit
+            if (!e.target.url) return; // If the page is local
             var store = db.transaction(["all-browsing"], "readwrite").objectStore("all-browsing"); // Access object store
-            var fetchNodeRequest = store.get(e.target.url);
+            var fetchNodeRequest = store.get(e.target.url);``
 
             fetchNodeRequest.onsuccess = function() {
                 var fetchedNode = fetchNodeRequest.result;
@@ -77,8 +104,6 @@
                 }
             }
         }
-
-        //TODO Child check in parent node so no recursion - use time stamp
     </script>
 </body>
 

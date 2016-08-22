@@ -4,6 +4,7 @@ background(239);
 noFill();
 stroke(115);
 strokeWeight(5);
+bezier(85, 20, 10, 10, 90, 90, 15, 80);
 bezier(200, 200, 200, 250, 230, 200, 230, 250);
 
 fill(239);
