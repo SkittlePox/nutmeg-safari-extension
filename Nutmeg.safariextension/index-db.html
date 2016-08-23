@@ -22,15 +22,12 @@
         safari.application.addEventListener("navigate", visitUpdate, true);
 
         function connect2DB(version) {
-            console.log("Connecting to Database " + version);
             var openRequest;
             if (version != null) {
                 openRequest = indexedDB.open("nutmeg-shed", version);
-                console.log("New version");
             } else openRequest = indexedDB.open("nutmeg-shed");
 
             openRequest.onupgradeneeded = function(e) {
-                console.log("Updating Database");
                 var thisDB = e.target.result;
 
                 //indexedDB.deleteObjectStore("all-browsing"); // Deletes saved data
@@ -43,6 +40,7 @@
                         });
                     }
                 }
+                console.log("Updated Database");
             }
             openRequest.onsuccess = function(e) {
                 db = e.target.result;
@@ -58,17 +56,43 @@
             }
         }
 
+        function addNewRoot(navNode, callback) {
+            var root = navNode.root;
+            console.log("New root");
+            var openRequest = indexedDB.open("nutmeg-shed");
+            openRequest.onsuccess = function(e) {
+                console.log("First request success");
+                db = e.target.result;
+                var version = parseInt(db.version);
+                var secondOpenRequest = indexedDB.open("nutmeg-shed", version + 1);
+                secondOpenRequest.onupgradeneeded = function(e) {
+                    db = e.target.result;
+                    db.createObjectStore(root, {
+                        keyPath: "url",
+                        autoIncrement: true
+                    });
+                }
+                secondOpenRequest.onsuccess = function(e) {
+                    console.log("Running callback");
+                    db = e.target.result;
+                    callback(navNode);
+                }
+            }
+        }
+
         function navNodeIncoming(msg) {
             if (msg.name != "newNode") return;
             navNode = msg.message;
 
             if (objStores.indexOf(navNode.root) == -1) {
                 objStores.push(navNode.root);
-                console.log(objStores);
-                ver = db.version + 1;
-                connect2DB(ver);
+                addNewRoot(navNode, navNodeCallback);
+            } else {
+                navNodeCallback(navNode);
             }
+        }
 
+        function navNodeCallback(navNode) {
             var store = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
             var fetchNodeRequest = store.get(navNode.parentURL);
 
@@ -93,7 +117,7 @@
         function visitUpdate(e) { // Updates database upon page visit
             if (!e.target.url) return; // If the page is local
             var store = db.transaction(["all-browsing"], "readwrite").objectStore("all-browsing"); // Access object store
-            var fetchNodeRequest = store.get(e.target.url);``
+            var fetchNodeRequest = store.get(e.target.url);
 
             fetchNodeRequest.onsuccess = function() {
                 var fetchedNode = fetchNodeRequest.result;
