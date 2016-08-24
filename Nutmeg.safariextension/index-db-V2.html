@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+
+<body>
+    <script>
+        var databaseName = "nutmeg-stash";
+        var db;
+        connect2DB();
+
+        safari.application.addEventListener("message", navigationNodeIncoming, false);
+        safari.application.addEventListener("navigate", visitUpdate, true);
+
+        var Node = function(url, title, childrenURLs, firstVisit, lastVisit) {
+            this.url = url;
+            this.title = title;
+            this.childrenURLs = childrenURLs;
+            this.firstVisit = firstVisit;
+            this.lastVisit = lastVisit;
+        }
+
+        function connect2DB(version) {
+            if (db !== undefined) {
+                console.log("Closing " + databaseName);
+                db.close();
+            }
+            if (version === undefined) var openRequest = indexedDB.open(databaseName);
+            else var openRequest = indexedDB.open(databaseName, version);
+
+            openRequest.onupgradeneeded = function(e) {
+                var softDB = e.target.result;
+
+                if (!softDB.objectStoreNames.contains("all-browsing")) {
+                    var objectStore = softDB.createObjectStore("all-browsing", {
+                        keyPath: "url"
+                    });
+                }
+                console.log("Database Updated to Version " + softDB.version);
+            }
+
+            openRequest.onsuccess = function(e) {
+                db = e.target.result;
+                console.log("Connected to " + databaseName);
+            }
+
+            openRequest.onerror = function(e) {
+                console.error("Error connecting to " + databaseName);
+                console.dir(e);
+            }
+        }
+
+        function newObjStore(storeName, callbackNode, callback) { // Add new root
+            if (db === undefined) return;
+            console.log("Closing " + databaseName + " to add new object store " + storeName);
+            db.close();
+
+            var injectRequest = indexedDB.open(databaseName);
+
+            injectRequest.onsuccess = function(e1) {
+                var intermediateDB = e1.target.result;
+                var version = parseInt(intermediateDB.version);
+                console.log("Version Extracted: " + version);
+                intermediateDB.close();
+
+                var payloadRequest = indexedDB.open(databaseName, version + 1);
+
+                payloadRequest.onupgradeneeded = function(e2) {
+                    var softDB = e2.target.result;
+                    softDB.createObjectStore(storeName, {
+                        keyPath: "url"
+                    });
+                    console.log("Store Inserted");
+                }
+
+                payloadRequest.onsuccess = function(e2) {
+                    db = e2.target.result;
+                    console.log("Database Variable Updated");
+                    if (callback) callback(callbackNode);
+                }
+            }
+        }
+
+        function wipeObjStores() {
+            if (db === undefined) return;
+            db.close();
+
+            var injectRequest = indexedDB.open(databaseName);
+
+            injectRequest.onsuccess = function(e1) {
+                var intermediateDB = e1.target.result;
+                var version = parseInt(intermediateDB.version);
+                console.log("Version Extracted: " + version);
+                intermediateDB.close();
+
+                var payloadRequest = indexedDB.open(databaseName, version + 1);
+
+                payloadRequest.onupgradeneeded = function(e2) {
+                    var softDB = e2.target.result;
+                    var objStores = softDB.objectStoreNames;
+                    for (var i = 0; i < objStores.length; i++) {
+                        softDB.deleteObjectStore(objStores[i]);
+                        console.log("Deleted object store " + objStores[i]);
+                    }
+                    console.log("Finished store deletion");
+                }
+
+                payloadRequest.onsuccess = function(e2) {
+                    db = e2.target.result;
+                    console.log("Database Variable Updated");
+                }
+            }
+        }
+
+        function navigationNodeIncoming(e) {
+            if (e.name != "newNode") return;
+            navNode = e.message;
+
+            if (!db.objectStoreNames.contains(navNode.root)) {
+                newObjStore(navNode.root, navNode, function(navNode) { // Ugh this is dirty
+                    var rootStore = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
+                    var fetchParentRequest = rootStore.get(navNode.parentURL);
+
+                    fetchParentRequest.onsuccess = function() {
+                        console.log("Inside store " + navNode.root);
+                        if (fetchParentRequest.result) {
+                            var fetchedParent = fetchParentRequest.result;
+                            if (fetchedParent.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
+                                fetchedParent.childrenURLs.push(navNode.childURL);
+                                console.log("Appending children to " + fetchedParent.url);
+                                rootStore.put(fetchedParent);
+                                var childAdd = rootStore.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
+                                childAdd.onsuccess = function() {
+                                    console.log("Adding child node " + navNode.childURL);
+                                }
+                            }
+                        } else {
+                            rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                            console.log("Adding parent node " + navNode.parentURL);
+                            var childAdd = rootStore.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
+                            childAdd.onsuccess = function() {
+                                console.log("Adding child node " + navNode.childURL);
+                            }
+                        }
+                    }
+                });
+            } else {
+                var rootStore = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
+                var fetchParentRequest = rootStore.get(navNode.parentURL);
+
+                fetchParentRequest.onsuccess = function() {
+                    console.log("Inside store " + navNode.root);
+                    if (fetchParentRequest.result) {
+                        var fetchedParent = fetchParentRequest.result;
+                        if (fetchedParent.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
+                            fetchedParent.childrenURLs.push(navNode.childURL);
+                            console.log("Appending children to " + fetchedParent.url);
+                            rootStore.put(fetchedParent);
+                            var childAdd = rootStore.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
+                            childAdd.onsuccess = function() {
+                                console.log("Adding child node " + navNode.childURL);
+                            }
+                        }
+                    } else {
+                        rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                        console.log("Adding parent node " + navNode.parentURL);
+                        var childAdd = rootStore.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
+                        childAdd.onsuccess = function() {
+                            console.log("Adding child node " + navNode.childURL);
+                        }
+                    }
+                }
+            }
+        }
+
+        function visitUpdate(e) {
+            if (!e.target.url) return; // If the page is local
+
+            var stores = db.objectStoreNames;
+            for (var i = 0; i < stores.length; i++) {
+                var store = db.transaction([stores[i]], "readwrite").objectStore(stores[i]); // Access object store
+                var fetchNodeRequest = store.get(e.target.url);
+
+                fetchNodeRequest.onsuccess = function(e) {
+                    var fetchedNode = e.result;
+                    if (fetchedNode) {
+                        fetchedNode.title = e.target.title;
+                        fetchedNode.lastVisit = new Date();
+                        store.put(fetchedNode);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
