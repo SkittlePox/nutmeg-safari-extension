@@ -9,6 +9,7 @@
         var databaseName = "nutmeg-stash";
         var db;
         var onDeck = [];
+        var url = "";
         connect2DB();
 
         safari.application.addEventListener("message", navigationNodeIncoming, false);
@@ -144,9 +145,11 @@
                         } else {
                             rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
                             console.log("Adding parent node " + navNode.parentURL);
-                            var childAdd = rootStore.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
-                            childAdd.onsuccess = function() {
-                                console.log("Adding child node " + navNode.childURL);
+                            if (navNode.childURL != "") {
+                                var childAdd = rootStore.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
+                                childAdd.onsuccess = function() {
+                                    console.log("Adding child node " + navNode.childURL);
+                                }
                             }
                         }
                     }
@@ -157,15 +160,17 @@
 
                 fetchParentRequest.onsuccess = function() {
                     console.log("Inside store " + navNode.root);
-                    if (fetchParentRequest.result) {
+                    if (fetchParentRequest.result) { // If the parent already exists in the database
                         var fetchedParent = fetchParentRequest.result;
                         if (fetchedParent.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
                             fetchedParent.childrenURLs.push(navNode.childURL);
                             console.log("Appending children to " + fetchedParent.url);
                             rootStore.put(fetchedParent);
-                            var childAdd = rootStore.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
-                            childAdd.onsuccess = function() {
-                                console.log("Adding child node " + navNode.childURL);
+                            if (navNode.childURL != "") {
+                                var childAdd = rootStore.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
+                                childAdd.onsuccess = function() {
+                                    console.log("Adding child node " + navNode.childURL);
+                                }
                             }
                         }
                     } else {
@@ -205,9 +210,15 @@
                 }
             }
 
-            var stores = db.objectStoreNames;
-            for (var i = 0; i < stores.length; i++) {         // Asynchronous issue
-                var store = db.transaction([stores[i]], "readwrite").objectStore(stores[i]); // Access object store
+            var DOMStores = db.objectStoreNames;
+            var stores = [];
+            for (var i = 0; i < DOMStores.length; i++) {
+                stores.push(DOMStores[i]);
+            }
+
+            stores.forEach(function(value) {    // Issue here
+                console.log(e.target.url + " into " + value);
+                var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
                 var fetchNodeRequest = store.get(e.target.url);
 
                 fetchNodeRequest.onsuccess = function(e) {
@@ -218,7 +229,7 @@
                         store.put(fetchedNode);
                     }
                 }
-            }
+            });
         }
     </script>
 </body>
