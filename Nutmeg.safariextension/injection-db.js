@@ -12,7 +12,9 @@ function wasClicked(element) {
 }
 
 function handleMessage(msgEvent) {
-    if (msgEvent.name === "newTree") {
+    if (msgEvent.name === "tag") {
+        rootNode = msgEvent.message;
+    } else if (msgEvent.name === "newTree") {
         rootNode = msgEvent.message;
         safari.self.tab.dispatchMessage("newNode", new NavNode("all-browsing", top.document.title, top.document.URL, ""));
         safari.self.tab.dispatchMessage("newNode", new NavNode(rootNode, top.document.title, top.document.URL, ""));

@@ -8,6 +8,7 @@
     <script>
         var databaseName = "nutmeg-stash";
         var db;
+        var onDeck = [];
         connect2DB();
 
         safari.application.addEventListener("message", navigationNodeIncoming, false);
@@ -19,6 +20,11 @@
             this.childrenURLs = childrenURLs;
             this.firstVisit = firstVisit;
             this.lastVisit = lastVisit;
+        }
+
+        var QueuedNode = function(url, root) {
+            this.url = url;
+            this.root = root;
         }
 
         function connect2DB(version) {
@@ -172,13 +178,35 @@
                     }
                 }
             }
+            if (navNode.root != "all-browsing" && navNode.childURL != "") {
+                var isOnDeck = false;
+                for (var i = 0; i < onDeck.length; i++) {
+                    if (onDeck[i].url == navNode.childURL && onDeck[i].root == navNode.root) {
+                        isOnDeck = true;
+                        break;
+                    }
+                }
+                if (!isOnDeck) {
+                    onDeck.push(new QueuedNode(navNode.childURL, navNode.root));
+                    console.log("Adding " + navNode.childURL + " to onDeck");
+                }
+            }
         }
 
         function visitUpdate(e) {
             if (!e.target.url) return; // If the page is local
 
+            for (var i = 0; i < onDeck.length; i++) {
+                if (onDeck[i].url == e.target.url) {
+                    safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
+                    onDeck = onDeck.splice(i, 1);
+                    console.log("Removed " + e.target.url + " from onDeck");
+                    break;
+                }
+            }
+
             var stores = db.objectStoreNames;
-            for (var i = 0; i < stores.length; i++) {
+            for (var i = 0; i < stores.length; i++) {         // Asynchronous issue
                 var store = db.transaction([stores[i]], "readwrite").objectStore(stores[i]); // Access object store
                 var fetchNodeRequest = store.get(e.target.url);
 
