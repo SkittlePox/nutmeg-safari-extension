@@ -78,7 +78,7 @@
                     softDB.createObjectStore(storeName, {
                         keyPath: "url"
                     });
-                    console.log("Store Inserted");
+                    console.log("Store Inserted " + storeName);
                 }
 
                 payloadRequest.onsuccess = function(e2) {
@@ -143,9 +143,10 @@
                                 }
                             }
                         } else {
-                            rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                            if (navNode.childURL) rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                            else rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [], navNode.visitTime, navNode.visitTime));
                             console.log("Adding parent node " + navNode.parentURL);
-                            if (navNode.childURL != "") {
+                            if (navNode.childURL) {
                                 var childAdd = rootStore.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
                                 childAdd.onsuccess = function() {
                                     console.log("Adding child node " + navNode.childURL);
@@ -166,24 +167,27 @@
                             fetchedParent.childrenURLs.push(navNode.childURL);
                             console.log("Appending children to " + fetchedParent.url);
                             rootStore.put(fetchedParent);
-                            if (navNode.childURL != "") {
+                            if (navNode.childURL) {
                                 var childAdd = rootStore.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
                                 childAdd.onsuccess = function() {
                                     console.log("Adding child node " + navNode.childURL);
                                 }
                             }
                         }
-                    } else {
-                        rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                    } else { // If the parent does not exist, we need to add it in
+                        if (navNode.childURL) rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [navNode.childURL], navNode.visitTime, navNode.visitTime));
+                        else rootStore.add(new Node(navNode.parentURL, navNode.parentTitle, [], navNode.visitTime, navNode.visitTime));
                         console.log("Adding parent node " + navNode.parentURL);
-                        var childAdd = rootStore.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
-                        childAdd.onsuccess = function() {
-                            console.log("Adding child node " + navNode.childURL);
+                        if (navNode.childURL) {
+                            var childAdd = rootStore.add(new Node(navNode.childURL, null, [], navNode.visitTime, navNode.visitTime)); // Bounces if the entry already exists
+                            childAdd.onsuccess = function() {
+                                console.log("Adding child node " + navNode.childURL);
+                            }
                         }
                     }
                 }
             }
-            if (navNode.root != "all-browsing" && navNode.childURL != "") {
+            if (navNode.root != "all-browsing" && !navNode.childURL) {
                 var isOnDeck = false;
                 for (var i = 0; i < onDeck.length; i++) {
                     if (onDeck[i].url == navNode.childURL && onDeck[i].root == navNode.root) {
@@ -216,13 +220,13 @@
                 stores.push(DOMStores[i]);
             }
 
-            stores.forEach(function(value) {    // Issue here
+            stores.forEach(function(value) { // Issue here
                 console.log(e.target.url + " into " + value);
                 var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
                 var fetchNodeRequest = store.get(e.target.url);
 
-                fetchNodeRequest.onsuccess = function(e) {
-                    var fetchedNode = e.result;
+                fetchNodeRequest.onsuccess = function() {
+                    var fetchedNode = fetchNodeRequest.result;
                     if (fetchedNode) {
                         fetchedNode.title = e.target.title;
                         fetchedNode.lastVisit = new Date();
