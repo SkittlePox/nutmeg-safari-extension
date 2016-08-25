@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hello World</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+        }
+
+        div {
+            display: inline-block;
+        }
+
+        button {
+            float: left;
+            font-size: 9pt;
+            color: #737373;
+            margin: 0px;
+            background-color: #FFFFFF;
+            border: solid;
+            border-width: thin;
+            border-color: #A6A6A6;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-top: 3px;
+            padding-bottom: 4px;
+        }
+
+        button:active {
+        }
+
+        .active {
+            background-color: #5596F5;
+            color: #FFFFFF;
+        }
+
+        .middle {
+            border-left: none;
+        }
+
+        .left {
+            border-radius: 5px 0px 0px 5px;
+        }
+
+        .right {
+            border-radius: 0px 5px 5px 0px;
+            border-left: none;
+        }
+    </style>
+    <script>
+        function init() {
+            var buttons = document.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].addEventListener("click", toggleActive);
+            }
+        }
+
+        function toggleActive(e) {
+            if (e.target.className.split(" ").indexOf("active") == -1) {
+                var elements = document.getElementsByTagName("button");
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].className = elements[i].className.split(" ")[0];
+                }
+                e.target.className += " active";
+            }
+        }
+    </script>
+</head>
+
+<body onload="init()">
+    <div>
+        <button class="left active">Current Tree</button>
+        <!--<button class="middle">middle button</button>-->
+        <button class="right">Your Trees</button>
+    </div>
+</body>
+
+</html>

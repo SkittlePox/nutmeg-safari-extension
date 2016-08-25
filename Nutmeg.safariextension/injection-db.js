@@ -26,7 +26,7 @@ rootNode = null;
 links = document.links;
 
 for (var i = 0; i < links.length; i++) { // Injects function into each link
-    if (links[i].href && links[i].href != top.document.URL) {
+    if (links[i].href && links[i].href != top.document.URL && links[i].href != "#") {
         links[i].addEventListener("click", function() {
             wasClicked(this);
         });
