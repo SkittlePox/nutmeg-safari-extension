@@ -189,8 +189,12 @@
 
         function rootActiveToggle(e) {
             var roots = document.getElementsByTagName("tr");
-            for (var i = 0; i < roots.length; i++) {
-                roots[i].className = "";
+            if (e.shiftKey) {
+                // Get position in parent and apply active classname to range, excluding the target itself because it is tagged later
+            } else {
+                for (var i = 0; i < roots.length; i++) {
+                    roots[i].className = "";
+                }
             }
             e.target.parentElement.className = "active";
         }

@@ -18,6 +18,8 @@ function handleMessage(msgEvent) {
         rootNode = msgEvent.message;
         safari.self.tab.dispatchMessage("newNode", new NavNode("all-browsing", top.document.title, top.document.URL, null));
         safari.self.tab.dispatchMessage("newNode", new NavNode(rootNode, top.document.title, top.document.URL, null));
+    } else if (msgEvent.name === "burn") {
+        if (rootNode == msgEvent.message) rootNode = null;
     }
 }
 

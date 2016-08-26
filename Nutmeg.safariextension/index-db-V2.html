@@ -231,6 +231,13 @@
                 payloadRequest.onsuccess = function(e2) {
                     db = e2.target.result;
                     refreshPopover();
+                    var safariWindows = safari.application.browserWindows;
+                    for (var i = 0; i < safariWindows.length; i++) {
+                        var safariTabs = safariWindows[i].tabs;
+                        for (var j = 0; j < safariTabs.length; j++) {
+                            safariTabs[j].page.dispatchMessage("burn", storeName);
+                        }
+                    }
                     console.log("Database Variable Updated");
                 }
             }
@@ -275,7 +282,6 @@
 
         function popoverHandler(e) {
             if (e.target.identifier != "nutmeg-popover") return;
-            console.log(e.target);
             refreshPopover();
         }
 
