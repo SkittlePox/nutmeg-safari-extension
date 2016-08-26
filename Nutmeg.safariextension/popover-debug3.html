@@ -25,30 +25,59 @@
             outline: none;
         }
 
-        ul {
-            width: 400px;
+        table {
+            border-collapse: collapse;
+            border: thin solid #DFDFDF;
+            width: 500px;
             margin: auto;
-            list-style-type: none;
-            border: solid;
-            border-color: #DFDFDF;
-            border-width: thin;
-            font-size: 10pt;
-            padding-left: 0px;
+            font-size: 9pt;
+            table-layout: fixed;
         }
 
-        li:nth-child(odd) {
+        tr:nth-child(odd) {
             background: #F5F5F5;
         }
 
-        li:nth-child(even) {
+        tr:nth-child(even) {
             background: #FFFFFF;
         }
 
-        li {
+        tr {
+            border-right: none;
+            border-left: none;
             text-align: center;
+            color: #4D4D4D;
+            padding-bottom: 2px;
+            text-align: left;
+        }
+
+        td {
             padding-top: 2px;
             padding-bottom: 2px;
-            color: #4D4D4D;
+            border: none;
+            padding-left: 17px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        th {
+            border-left: solid thin #DFDFDF;
+            border-bottom: solid thin #C5C5C5;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            background-color: #F0F0F0;
+            padding-left: 15px;
+            font-size: 8.5pt;
+            color: #000000;
+        }
+
+        .name {
+            width: 60%;
+        }
+
+        .date {
+            width: 30%;
         }
 
         img {
@@ -115,12 +144,19 @@
             for (var i = 0; i < buttons.length; i++) {
                 buttons[i].addEventListener("click", toggleActiveSwitcher);
             }
-            var roots = document.getElementsByTagName("li");
-            for (var i = 0; i < roots.length; i++) {
-                roots[i].addEventListener("click", rootActiveToggle);
-            }
             sketch = document.getElementById("sketch");
             rootList = document.getElementById("rootList");
+        }
+
+        function popTable(storeInfo) {
+            rootList.innerHTML = "<tr><th class=\"name\">Name</th><th class=\"date\">Date Visited</th><th>Size</th></tr>";
+            for (var i = 0; i < storeInfo.length; i++) {
+                rootList.innerHTML += "<tr><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][2] + "</td></tr>";
+            }
+            var roots = document.getElementsByTagName("tr");
+            for (var i = 1; i < roots.length; i++) {
+                roots[i].addEventListener("click", rootActiveToggle);
+            }
         }
 
         function toggleActiveSwitcher(e) {
@@ -141,11 +177,11 @@
         }
 
         function rootActiveToggle(e) {
-            var roots = document.getElementsByTagName("li");
+            var roots = document.getElementsByTagName("tr");
             for (var i = 0; i < roots.length; i++) {
                 roots[i].className = "";
             }
-            e.target.className = "active";
+            e.target.parentElement.className = "active";
         }
 
         function imgActiveSet(elem, act) {
@@ -157,7 +193,7 @@
         }
 
         function newTree() {
-            console.log("Memes")
+            safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("newTree", safari.application.activeBrowserWindow.activeTab.url);
         }
     </script>
     <script src="processing.js"></script>
@@ -172,11 +208,13 @@
     <img src="newTree.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <br />
     <canvas id="sketch" data-processing-sources="Nutmeg_Processing.pde"></canvas>
-    <ul hidden id="rootList" class="unselectable">
-        <li>Dank</li>
-        <li>Memes</li>
-        <li>4 lyfe</li>
-    </ul>
+    <table hidden id="rootList" class="unselectable">
+        <tr>
+            <th class="name">Name</th>
+            <th class="date">Date Visited</th>
+            <th>Size</th>
+        </tr>
+    </table>
 
 </body>
 

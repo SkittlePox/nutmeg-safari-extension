@@ -14,6 +14,7 @@
 
         safari.application.addEventListener("message", navigationNodeIncoming, false);
         safari.application.addEventListener("navigate", visitUpdate, true);
+        safari.application.addEventListener("popover", popoverHandler, true);
 
         var Node = function(url, title, childrenURLs, firstVisit, lastVisit) {
             this.url = url;
@@ -49,6 +50,7 @@
 
             openRequest.onsuccess = function(e) {
                 db = e.target.result;
+                refreshPopover();
                 console.log("Connected to " + databaseName);
             }
 
@@ -115,6 +117,7 @@
 
                 payloadRequest.onsuccess = function(e2) {
                     db = e2.target.result;
+                    refreshPopover();
                     console.log("Database Variable Updated");
                 }
             }
@@ -154,6 +157,7 @@
                             }
                         }
                     }
+                    refreshPopover();
                 });
             } else {
                 var rootStore = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
@@ -220,7 +224,8 @@
                 stores.push(DOMStores[i]);
             }
 
-            stores.forEach(function(value) { // Issue here
+            var updateCount = 0;
+            stores.forEach(function(value) {
                 console.log(e.target.url + " into " + value);
                 var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
                 var fetchNodeRequest = store.get(e.target.url);
@@ -231,6 +236,55 @@
                         fetchedNode.title = e.target.title;
                         fetchedNode.lastVisit = new Date();
                         store.put(fetchedNode);
+                        updateCount++;
+                        if (updateCount == stores.length) refreshPopover();
+                    }
+                }
+            });
+        }
+
+        // Popover Functions
+
+        function popoverHandler(e) {
+            if (e.target.identifier != "nutmeg-popover") return;
+            refreshPopover();
+        }
+
+        function refreshPopover() {
+            var DOMNames = db.objectStoreNames;
+            var sNames = [];
+            var info = [];
+            for (var i = 1; i < DOMNames.length; i++) {
+                sNames.push(DOMNames[i]);
+            }
+            sNames.forEach(function(value) {
+                var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
+                var fetchNodeRequest = store.get(value);
+
+                fetchNodeRequest.onsuccess = function() {
+                    var fetchedNode = fetchNodeRequest.result;
+                    if (fetchedNode) {
+                        var data = [fetchedNode.title];
+                        var timeVar = fetchedNode.lastVisit;
+                        var timeNow = new Date();
+
+                        var time;
+                        if ((timeNow.getDate() == timeVar.getDate() || timeNow.getDate() == timeVar.getDate() + 1) && timeNow.getMonth() == timeVar.getMonth() && timeNow.getYear() == timeVar.getYear()) {
+                            time = (timeNow.getDate() == timeVar.getDate() ? "Today, " : "Yesterday, ") + (timeVar.getHours() % 12 + 1) + ":" + timeVar.getMinutes() + " " + (timeVar.getHours() >= 12 ? "PM" : "AM");
+                        } else {
+                            var timeSplit = timeVar.toString().split(" ");
+                            time = timeSplit[1] + " " + timeSplit[2] + ", " + timeSplit[3] + " " + (timeVar.getHours() % 12 + 1) + ":" + timeVar.getMinutes() + " " + (timeVar.getHours() >= 12 ? "PM" : "AM");
+                        }
+
+                        data.push(time);
+                        var size = store.count();
+                        size.onsuccess = function() {
+                            data.push(size.result);
+                            info.push(data);
+                            if (info.length === sNames.length) {
+                                safari.extension.popovers[0].contentWindow.popTable(info);
+                            }
+                        }
                     }
                 }
             });
