@@ -7,10 +7,62 @@
         body {
             font-family: Arial, Helvetica, sans-serif;
             text-align: center;
+            width: 600px;
+            height: 600px;
+            margin: auto;
         }
 
         div {
             display: inline-block;
+            margin: 10px;
+        }
+
+        span {
+            float: right;
+        }
+
+        canvas {
+            outline: none;
+        }
+
+        ul {
+            width: 400px;
+            margin: auto;
+            list-style-type: none;
+            border: solid;
+            border-color: #DFDFDF;
+            border-width: thin;
+            font-size: 10pt;
+            padding-left: 0px;
+        }
+
+        li:nth-child(odd) {
+            background: #F5F5F5;
+        }
+
+        li:nth-child(even) {
+            background: #FFFFFF;
+        }
+
+        li {
+            text-align: center;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            color: #4D4D4D;
+        }
+
+        img {
+            width: 18px;
+            border: solid;
+            border-width: thin;
+            border-color: #A6A6A6;
+            display: inline;
+            padding: 2px 10px 2px 10px;
+            border-radius: 5px;
+            position: absolute;
+            margin-top: 10px;
+            margin-left: 10px;
+            background-color: #FFFFFF;
         }
 
         button {
@@ -28,11 +80,8 @@
             padding-bottom: 4px;
         }
 
-        button:active {
-        }
-
         .active {
-            background-color: #5596F5;
+            background-color: #5596F5 !important;
             color: #FFFFFF;
         }
 
@@ -48,33 +97,87 @@
             border-radius: 0px 5px 5px 0px;
             border-left: none;
         }
+
+        .unselectable {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
     </style>
     <script>
+        var sketch, rootList;
+
         function init() {
             var buttons = document.getElementsByTagName("button");
             for (var i = 0; i < buttons.length; i++) {
-                buttons[i].addEventListener("click", toggleActive);
+                buttons[i].addEventListener("click", toggleActiveSwitcher);
             }
+            var roots = document.getElementsByTagName("li");
+            for (var i = 0; i < roots.length; i++) {
+                roots[i].addEventListener("click", rootActiveToggle);
+            }
+            sketch = document.getElementById("sketch");
+            rootList = document.getElementById("rootList");
         }
 
-        function toggleActive(e) {
+        function toggleActiveSwitcher(e) {
             if (e.target.className.split(" ").indexOf("active") == -1) {
                 var elements = document.getElementsByTagName("button");
                 for (var i = 0; i < elements.length; i++) {
                     elements[i].className = elements[i].className.split(" ")[0];
                 }
                 e.target.className += " active";
+                if (e.target.id == "tree") {
+                    sketch.hidden = false;
+                    rootList.hidden = true;
+                } else {
+                    sketch.hidden = true;
+                    rootList.hidden = false;
+                }
             }
         }
+
+        function rootActiveToggle(e) {
+            var roots = document.getElementsByTagName("li");
+            for (var i = 0; i < roots.length; i++) {
+                roots[i].className = "";
+            }
+            e.target.className = "active";
+        }
+
+        function imgActiveSet(elem, act) {
+            if (!act) {
+                elem.className = "";
+            } else {
+                elem.className = "active";
+            }
+        }
+
+        function newTree() {
+            console.log("Memes")
+        }
     </script>
+    <script src="processing.js"></script>
 </head>
 
 <body onload="init()">
     <div>
-        <button class="left active">Current Tree</button>
-        <!--<button class="middle">middle button</button>-->
-        <button class="right">Your Trees</button>
+        <button id="tree" class="left active">Open Tree</button>
+        <!--<button class="middle">middle</button>-->
+        <button id="forest" class="right">Your Trees</button>
     </div>
+    <img src="newTree.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
+    <br />
+    <canvas id="sketch" data-processing-sources="Nutmeg_Processing.pde"></canvas>
+    <ul hidden id="rootList" class="unselectable">
+        <li>Dank</li>
+        <li>Memes</li>
+        <li>4 lyfe</li>
+    </ul>
+
 </body>
 
 </html>
