@@ -10,6 +10,11 @@
             width: 600px;
             height: 600px;
             margin: auto;
+            cursor: default;
+        }
+
+        body:focus {
+            cursor: default;
         }
 
         div {
@@ -35,11 +40,11 @@
         }
 
         tr:nth-child(odd) {
-            background: #F5F5F5;
+            background-color: #F5F5F5;
         }
 
         tr:nth-child(even) {
-            background: #FFFFFF;
+            background-color: #FFFFFF;
         }
 
         tr {
@@ -81,17 +86,22 @@
         }
 
         img {
-            width: 18px;
+            height: 18px;
             border: solid;
             border-width: thin;
             border-color: #A6A6A6;
-            display: inline;
+            display: inline-block;
             padding: 2px 10px 2px 10px;
             border-radius: 5px;
-            position: absolute;
+            position: fixed;
             margin-top: 10px;
-            margin-left: 10px;
+            margin-left: 50px;
             background-color: #FFFFFF;
+            -webkit-user-drag: none;
+        }
+
+        img:nth-child(odd) {
+            margin-left: 98px;
         }
 
         button {
@@ -149,10 +159,11 @@
         }
 
         function popTable(storeInfo) {
-            rootList.innerHTML = "<tr><th class=\"name\">Name</th><th class=\"date\">Date Visited</th><th>Size</th></tr>";
+            var newHTML = "<tr><th class=\"name\">Name</th><th class=\"date\">Date Visited</th><th>Size</th></tr>";
             for (var i = 0; i < storeInfo.length; i++) {
-                rootList.innerHTML += "<tr><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][2] + "</td></tr>";
+                newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"/><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
             }
+            rootList.innerHTML = newHTML;
             var roots = document.getElementsByTagName("tr");
             for (var i = 1; i < roots.length; i++) {
                 roots[i].addEventListener("click", rootActiveToggle);
@@ -195,17 +206,29 @@
         function newTree() {
             safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("newTree", safari.application.activeBrowserWindow.activeTab.url);
         }
+
+        function deleteTree() {
+            if (rootList.hidden == false) {
+                var roots = document.getElementsByTagName("tr");
+                for (var i = 0; i < roots.length; i++) {
+                    if (roots[i].className == "active") {
+                        safari.extension.globalPage.contentWindow.deleteTree(roots[i].getAttribute("data-objStore"));
+                    }
+                }
+            }
+        }
     </script>
     <script src="processing.js"></script>
 </head>
 
-<body onload="init()">
+<body onload="init()" class="unselectable">
     <div>
         <button id="tree" class="left active">Open Tree</button>
         <!--<button class="middle">middle</button>-->
         <button id="forest" class="right">Your Trees</button>
     </div>
-    <img src="newTree.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
+    <img title="New Tree" src="newTree.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
+    <img title="Burn Tree" src="delete.png" onclick="deleteTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <br />
     <canvas id="sketch" data-processing-sources="Nutmeg_Processing.pde"></canvas>
     <table hidden id="rootList" class="unselectable">
