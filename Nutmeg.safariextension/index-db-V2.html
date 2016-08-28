@@ -141,9 +141,11 @@
                                 fetchedParent.childrenURLs.push(navNode.childURL);
                                 console.log("Appending children to " + fetchedParent.url);
                                 rootStore.put(fetchedParent);
-                                var childAdd = rootStore.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
-                                childAdd.onsuccess = function() {
-                                    console.log("Adding child node " + navNode.childURL);
+                                if (navNode.childURL) {
+                                    var childAdd = rootStore.add(new Node(navNode.childURL, null, [], new Date(), new Date())); // Bounces if the entry already exists
+                                    childAdd.onsuccess = function() {
+                                        console.log("Adding child node " + navNode.childURL);
+                                    }
                                 }
                             }
                         } else {
@@ -161,6 +163,7 @@
                     refreshPopover();
                 });
             } else {
+                console.log(db);
                 var rootStore = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
                 var fetchParentRequest = rootStore.get(navNode.parentURL);
 
@@ -200,7 +203,7 @@
                         break;
                     }
                 }
-                if (!isOnDeck) {
+                if (!isOnDeck && navNode.childURL != null) {
                     onDeck.push(new QueuedNode(navNode.childURL, navNode.root));
                     console.log("Adding " + navNode.childURL + " to onDeck");
                 }
@@ -289,9 +292,11 @@
             var DOMNames = db.objectStoreNames;
             var sNames = [];
             var info = [];
+            if (DOMNames.length == 1) safari.extension.popovers[0].contentWindow.popTable([]);
             for (var i = 1; i < DOMNames.length; i++) {
                 sNames.push(DOMNames[i]);
             }
+
             sNames.forEach(function(value) {
                 var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
                 var fetchNodeRequest = store.get(value);

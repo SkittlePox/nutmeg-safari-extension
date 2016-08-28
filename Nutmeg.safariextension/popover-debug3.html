@@ -22,10 +22,6 @@
             margin: 10px;
         }
 
-        span {
-            float: right;
-        }
-
         canvas {
             outline: none;
         }
@@ -37,6 +33,10 @@
             margin: auto;
             font-size: 9pt;
             table-layout: fixed;
+        }
+
+        #rootList2 {
+            border-top: none;
         }
 
         tr:nth-child(odd) {
@@ -66,6 +66,16 @@
             overflow: hidden;
         }
 
+        td:first-child,
+        th:first-child {
+            width: 60%;
+        }
+
+        td:nth-child(2),
+        th:nth-child(2) {
+            width: 30%;
+        }
+
         th {
             border-left: solid thin #DFDFDF;
             border-bottom: solid thin #C5C5C5;
@@ -75,14 +85,6 @@
             padding-left: 15px;
             font-size: 8.5pt;
             color: #000000;
-        }
-
-        .name {
-            width: 60%;
-        }
-
-        .date {
-            width: 30%;
         }
 
         img {
@@ -147,7 +149,7 @@
         }
     </style>
     <script>
-        var sketch, rootList;
+        var sketch, rootList1, rootList2;
 
         function init() {
             var buttons = document.getElementsByTagName("button");
@@ -155,15 +157,16 @@
                 buttons[i].addEventListener("click", toggleActiveSwitcher);
             }
             sketch = document.getElementById("sketch");
-            rootList = document.getElementById("rootList");
+            rootList1 = document.getElementById("rootList1");
+            rootList2 = document.getElementById("rootList2");
         }
 
         function popTable(storeInfo) {
-            var newHTML = "<tr><th class=\"name\">Name</th><th class=\"date\">Date Visited</th><th>Size</th></tr>";
+            var newHTML = "";
             for (var i = 0; i < storeInfo.length; i++) {
                 newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"/><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
             }
-            rootList.innerHTML = newHTML;
+            rootList2.innerHTML = newHTML;
             var roots = document.getElementsByTagName("tr");
             for (var i = 1; i < roots.length; i++) {
                 roots[i].addEventListener("click", rootActiveToggle);
@@ -179,10 +182,12 @@
                 e.target.className += " active";
                 if (e.target.id == "tree") {
                     sketch.hidden = false;
-                    rootList.hidden = true;
+                    rootList1.hidden = true;
+                    rootList2.hidden = true;
                 } else {
                     sketch.hidden = true;
-                    rootList.hidden = false;
+                    rootList1.hidden = false;
+                    rootList2.hidden = false;
                 }
             }
         }
@@ -208,11 +213,12 @@
         }
 
         function newTree() {
+            // alert(safari.application.activeBrowserWindow.activeTab.url);
             safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("newTree", safari.application.activeBrowserWindow.activeTab.url);
         }
 
         function deleteTree() {
-            if (rootList.hidden == false) {
+            if (rootList1.hidden == false) {
                 var roots = document.getElementsByTagName("tr");
                 for (var i = 0; i < roots.length; i++) {
                     if (roots[i].className == "active") {
@@ -235,14 +241,15 @@
     <img title="Burn Tree" src="delete.png" onclick="deleteTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <br />
     <canvas id="sketch" data-processing-sources="Nutmeg_Processing.pde"></canvas>
-    <table hidden id="rootList" class="unselectable">
+    <table hidden id="rootList1">
         <tr>
-            <th class="name">Name</th>
-            <th class="date">Date Visited</th>
+            <th>Name</th>
+            <th>Date Visited</th>
             <th>Size</th>
         </tr>
     </table>
-
+    <table hidden id="rootList2">
+    </table>
 </body>
 
 </html>
