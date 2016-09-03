@@ -160,12 +160,13 @@
 
         function visitUpdate(e) {
             if (!e.target.url) return; // If the page is local
+            var targetURL = e.target.url.split("#")[0];
 
             for (var i = 0; i < onDeck.length; i++) {
-                if (onDeck[i].url == e.target.url) {
+                if (onDeck[i].url == targetURL) {
                     safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
                     onDeck = onDeck.splice(i, 1);
-                    console.log("Removed " + e.target.url + " from onDeck");
+                    console.log("Removed " + targetURL + " from onDeck");
                     break;
                 }
             }
@@ -178,9 +179,9 @@
 
             var updateCount = 0;
             stores.forEach(function(value) {
-                console.log(e.target.url + " into " + value);
+                console.log(targetURL + " into " + value);
                 var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
-                var fetchNodeRequest = store.get(e.target.url);
+                var fetchNodeRequest = store.get(targetURL);
 
                 fetchNodeRequest.onsuccess = function() {
                     var fetchedNode = fetchNodeRequest.result;
@@ -209,7 +210,7 @@
                         console.log("Inside store " + navNode.root);
                         if (fetchParentRequest.result) {
                             var fetchedParent = fetchParentRequest.result;
-                            if (fetchedParent.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
+                            if (navNode.childURL && fetchedParent.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
                                 fetchedParent.childrenURLs.push(navNode.childURL);
                                 console.log("Appending children to " + fetchedParent.url);
                                 rootStore.put(fetchedParent);
@@ -243,7 +244,7 @@
                     console.log("Inside store " + navNode.root);
                     if (fetchParentRequest.result) { // If the parent already exists in the database
                         var fetchedParent = fetchParentRequest.result;
-                        if (fetchedParent.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
+                        if (navNode.childURL && fetchedParent.childrenURLs.indexOf(navNode.childURL) == -1) { // If the URL is not already in the fetched node's child URL list
                             fetchedParent.childrenURLs.push(navNode.childURL);
                             console.log("Appending children to " + fetchedParent.url);
                             rootStore.put(fetchedParent);
@@ -291,13 +292,20 @@
             var DOMNames = db.objectStoreNames;
             var sNames = [];
             var info = [];
-            if (DOMNames.length == 1) safari.extension.popovers[0].contentWindow.popTable([]);
+            if (DOMNames.length == 1) {
+                safari.extension.popovers[0].contentWindow.popTable([]);
+                console.log("No trees");
+                return;
+            }
             for (var i = 1; i < DOMNames.length; i++) {
                 sNames.push(DOMNames[i]);
             }
 
+            var count = 0;
+
             sNames.forEach(function(value) {
                 var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
+                // console.log("Accessing " + value + " for popover purposes");
                 var fetchNodeRequest = store.get(value);
 
                 fetchNodeRequest.onsuccess = function() {
@@ -323,10 +331,19 @@
                         size.onsuccess = function() {
                             data.push(size.result);
                             info.push(data);
-                            if (info.length === sNames.length) {
+                            count++;
+                            console.log("Data push " + count + " out of " + sNames.length + ": " + info[info.length-1][2]);
+                            if (count === sNames.length) {
+                                console.log("Populating popover");
                                 safari.extension.popovers[0].contentWindow.popTable(info);
                             }
                         }
+                        size.onerror = function() {
+                            console.log("What the fuck is going on here?");
+                        }
+                    } else {
+                        console.log("Something is wrong here");
+                        count++;
                     }
                 }
             });

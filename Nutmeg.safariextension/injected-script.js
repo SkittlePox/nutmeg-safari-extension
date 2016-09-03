@@ -16,21 +16,26 @@ function blacklistCheck(url) {
 }
 
 function wasClicked(element) {
-    safari.self.tab.dispatchMessage("newNavNode", new NavNode("all-browsing", parentWindowTitle, parentWindowURL, element.href));
-    if (rootNode) safari.self.tab.dispatchMessage("newNavNode", new NavNode(rootNode, parentWindowTitle, parentWindowURL, element.href)); // If not null send new Node object
+    safari.self.tab.dispatchMessage("newNavNode", new NavNode("all-browsing", parentWindowTitle, parentWindowURL, element.href.split("#")[0]));
+    if (rootNode) safari.self.tab.dispatchMessage("newNavNode", new NavNode(rootNode, parentWindowTitle, parentWindowURL, element.href.split("#")[0])); // If not null send new Node object
 }
 
 function handleMessage(msgEvent) {
-    console.log("Message");
     if (msgEvent.name === "tag") {
         rootNode = msgEvent.message;
         console.log("Tagged with root " + rootNode);
     } else if (msgEvent.name === "newTree") {
-        //  alert(parentWindowURL);
         if (!blacklistCheck(parentWindowURL)) return;
-        rootNode = msgEvent.message;
-        safari.self.tab.dispatchMessage("newNavNode", new NavNode("all-browsing", parentWindowTitle, parentWindowURL, null));
-        safari.self.tab.dispatchMessage("newNavNode", new NavNode(rootNode, parentWindowTitle, parentWindowURL, null));
+        try {
+            if (window.top === window) {
+                console.log("New Root Attempt");
+                rootNode = msgEvent.message;
+                if(rootNode != parentWindowURL) console.log("Redirection patched");
+                parentWindowURL = rootNode;
+                safari.self.tab.dispatchMessage("newNavNode", new NavNode("all-browsing", parentWindowTitle, parentWindowURL, null));
+                safari.self.tab.dispatchMessage("newNavNode", new NavNode(rootNode, parentWindowTitle, parentWindowURL, null));
+            }
+        } catch (e) {}
     } else if (msgEvent.name === "burn") {
         if (rootNode == msgEvent.message) rootNode = null;
     }
@@ -38,15 +43,15 @@ function handleMessage(msgEvent) {
 
 var rootNode = null;
 var blacklistComplete = ["#", "about:blank", "AddThis Utility Frame", "javascript:void(0)"];
-var blackListIncomplete = ["googleads.g.doubleclick.net", "googlesyndication"];
+var blackListIncomplete = ["googleads", "doubleclick.net", "googlesyndication"];
 var parentWindowURL, parentWindowTitle;
 
 try {
-    parentWindowURL = top.document.URL;
+    parentWindowURL = top.document.URL.split("#")[0];
     parentWindowTitle = (top.document.title ? top.document.title : top.document.URL.split("/")[2]);
     // console.log(parentWindowURL);
-    console.log(document.URL);
-    console.log(blacklistCheck(parentWindowURL));
+    // console.log(document.URL);
+    // console.log(blacklistCheck(parentWindowURL));
 
     if (blacklistCheck(parentWindowURL)) {
         var links = document.links;
@@ -64,7 +69,7 @@ try {
     console.log("Accessing higher page");
     console.log("Injected " + count + " listeners");
 } catch (e) {
-    parentWindowURL = document.URL;
+    parentWindowURL = document.URL.split("#")[0];
     parentWindowTitle = (document.title ? document.title : document.URL.split("/")[2]);
 
     if (blacklistCheck(parentWindowURL)) {

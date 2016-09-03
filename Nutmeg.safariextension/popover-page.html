@@ -37,6 +37,11 @@
 
         #rootList2 {
             border-top: none;
+            overflow-y: scroll;
+            overflow-x: scroll;
+            height: 480px;
+            display: block;
+            width: 498px;
         }
 
         tr:nth-child(odd) {
@@ -54,6 +59,7 @@
             color: #4D4D4D;
             padding-bottom: 2px;
             text-align: left;
+            width: 100%;
         }
 
         td {
@@ -64,21 +70,37 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
+            display: inline-block;
         }
 
-        td:first-child,
+        td:first-child {
+            width: 300px;
+        }
+
         th:first-child {
-            width: 60%;
+            width: 270px;
         }
 
-        td:nth-child(2),
+        td:nth-child(2) {
+            width: 120px;
+        }
+
         th:nth-child(2) {
-            width: 30%;
+            width: 90px;
+        }
+
+        td:nth-child(3),
+        th:nth-child(3) {
+            width: 31px;
         }
 
         td:nth-child(2),
         td:nth-child(3) {
             color: #909090;
+        }
+
+        td:nth-child(2) {
+            padding-left: 10px;
         }
 
         th {
@@ -127,9 +149,10 @@
             padding-bottom: 4px;
         }
 
-        .active {
+        .active,
+        .active td {
             background-color: #5596F5 !important;
-            color: #FFFFFF;
+            color: #FFFFFF !important;
         }
 
         .left {
@@ -168,10 +191,13 @@
             for (var i = 0; i < storeInfo.length; i++) {
                 newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"/><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
             }
+            for (var i = 0; i < 27 - storeInfo.length; i++) {
+                newHTML += "<tr class=\"not-active\"><td></td><td></td><td></td></tr>";
+            }
             rootList2.innerHTML = newHTML;
             var roots = document.getElementsByTagName("tr");
             for (var i = 1; i < roots.length; i++) {
-                roots[i].addEventListener("click", rootActiveToggle);
+                if (roots[i].className != "not-active") roots[i].addEventListener("click", rootActiveToggle);
             }
         }
 
@@ -216,7 +242,7 @@
 
         function newTree() {
             // alert(safari.application.activeBrowserWindow.activeTab.url);
-            safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("newTree", safari.application.activeBrowserWindow.activeTab.url);
+            safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("newTree", safari.application.activeBrowserWindow.activeTab.url.split("#")[0]);
         }
 
         function deleteTree() {
