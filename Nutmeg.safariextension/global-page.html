@@ -9,10 +9,9 @@
         var databaseName = "nutmeg-stash";
         var db;
         var onDeck = [];
-        var frames = [];
         connect2DB();
 
-        safari.application.addEventListener("message", messageIncoming, false);
+        safari.application.addEventListener("message", incomingMessage, false);
         safari.application.addEventListener("navigate", visitUpdate, true);
         safari.application.addEventListener("popover", popoverHandler, true);
 
@@ -60,37 +59,6 @@
             }
         }
 
-        function newObjStore(storeName, callbackNode, callback) { // Add new root
-            if (db === undefined) return;
-            console.log("Closing " + databaseName + " to add new object store " + storeName);
-            db.close();
-
-            var injectRequest = indexedDB.open(databaseName);
-
-            injectRequest.onsuccess = function(e1) {
-                var intermediateDB = e1.target.result;
-                var version = parseInt(intermediateDB.version);
-                console.log("Version Extracted: " + version);
-                intermediateDB.close();
-
-                var payloadRequest = indexedDB.open(databaseName, version + 1);
-
-                payloadRequest.onupgradeneeded = function(e2) {
-                    var softDB = e2.target.result;
-                    softDB.createObjectStore(storeName, {
-                        keyPath: "url"
-                    });
-                    console.log("Store Inserted " + storeName);
-                }
-
-                payloadRequest.onsuccess = function(e2) {
-                    db = e2.target.result;
-                    console.log("Database Variable Updated");
-                    if (callback) callback(callbackNode);
-                }
-            }
-        }
-
         function wipeObjStores() {
             if (db === undefined) return;
             db.close();
@@ -123,9 +91,112 @@
             }
         }
 
-        function messageIncoming(e) {
+        function newObjStore(storeName, callbackNode, callback) { // Add new root
+            if (db === undefined) return;
+            console.log("Closing " + databaseName + " to add new object store " + storeName);
+            db.close();
+
+            var injectRequest = indexedDB.open(databaseName);
+
+            injectRequest.onsuccess = function(e1) {
+                var intermediateDB = e1.target.result;
+                var version = parseInt(intermediateDB.version);
+                console.log("Version Extracted: " + version);
+                intermediateDB.close();
+
+                var payloadRequest = indexedDB.open(databaseName, version + 1);
+
+                payloadRequest.onupgradeneeded = function(e2) {
+                    var softDB = e2.target.result;
+                    softDB.createObjectStore(storeName, {
+                        keyPath: "url"
+                    });
+                    console.log("Store Inserted " + storeName);
+                }
+
+                payloadRequest.onsuccess = function(e2) {
+                    db = e2.target.result;
+                    console.log("Database Variable Updated");
+                    if (callback) callback(callbackNode);
+                }
+            }
+        }
+
+        function deleteTree(storeName) {
+            if (db === undefined) return;
+            console.log("Attempting to delete store " + storeName)
+            db.close();
+
+            var injectRequest = indexedDB.open(databaseName);
+
+            injectRequest.onsuccess = function(e1) {
+                var intermediateDB = e1.target.result;
+                var version = parseInt(intermediateDB.version);
+                console.log("Version Extracted: " + version);
+                intermediateDB.close();
+
+                var payloadRequest = indexedDB.open(databaseName, version + 1);
+
+                payloadRequest.onupgradeneeded = function(e2) {
+                    var softDB = e2.target.result;
+                    softDB.deleteObjectStore(storeName);
+                    console.log("Store Deletion Successful");
+                }
+
+                payloadRequest.onsuccess = function(e2) {
+                    db = e2.target.result;
+                    refreshPopover();
+                    var safariWindows = safari.application.browserWindows;
+                    for (var i = 0; i < safariWindows.length; i++) {
+                        var safariTabs = safariWindows[i].tabs;
+                        for (var j = 0; j < safariTabs.length; j++) {
+                            safariTabs[j].page.dispatchMessage("burn", storeName);
+                        }
+                    }
+                    console.log("Database Variable Updated");
+                }
+            }
+        }
+
+        function visitUpdate(e) {
+            if (!e.target.url) return; // If the page is local
+
+            for (var i = 0; i < onDeck.length; i++) {
+                if (onDeck[i].url == e.target.url) {
+                    safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
+                    onDeck = onDeck.splice(i, 1);
+                    console.log("Removed " + e.target.url + " from onDeck");
+                    break;
+                }
+            }
+
+            var DOMStores = db.objectStoreNames;
+            var stores = [];
+            for (var i = 0; i < DOMStores.length; i++) {
+                stores.push(DOMStores[i]);
+            }
+
+            var updateCount = 0;
+            stores.forEach(function(value) {
+                console.log(e.target.url + " into " + value);
+                var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
+                var fetchNodeRequest = store.get(e.target.url);
+
+                fetchNodeRequest.onsuccess = function() {
+                    var fetchedNode = fetchNodeRequest.result;
+                    if (fetchedNode) {
+                        fetchedNode.title = e.target.title;
+                        fetchedNode.lastVisit = new Date();
+                        store.put(fetchedNode);
+                        updateCount++;
+                        if (updateCount == stores.length) refreshPopover();
+                    }
+                }
+            });
+        }
+
+        function incomingMessage(e) {
             if (e.name == "newNavNode") newNavNode(e.message);
-            if (e.name == "newTrickleNode") newTrickleNode(e.message);
         }
 
         function newNavNode(navNode) {
@@ -209,85 +280,6 @@
                     console.log("Adding " + navNode.childURL + " to onDeck");
                 }
             }
-        }  
-
-        function newTrickleNode(trickleNode) {
-            for (var i = 0; i < trickleNode.childURLs.length; i++) {
-                frames.push(new QueuedNode(trickleNode.childURLs[i], trickleNode.root));
-            }
-        }
-
-        function deleteTree(storeName) {
-            if (db === undefined) return;
-            console.log("Attempting to delete store " + storeName)
-            db.close();
-
-            var injectRequest = indexedDB.open(databaseName);
-
-            injectRequest.onsuccess = function(e1) {
-                var intermediateDB = e1.target.result;
-                var version = parseInt(intermediateDB.version);
-                console.log("Version Extracted: " + version);
-                intermediateDB.close();
-
-                var payloadRequest = indexedDB.open(databaseName, version + 1);
-
-                payloadRequest.onupgradeneeded = function(e2) {
-                    var softDB = e2.target.result;
-                    softDB.deleteObjectStore(storeName);
-                    console.log("Store Deletion Successful");
-                }
-
-                payloadRequest.onsuccess = function(e2) {
-                    db = e2.target.result;
-                    refreshPopover();
-                    var safariWindows = safari.application.browserWindows;
-                    for (var i = 0; i < safariWindows.length; i++) {
-                        var safariTabs = safariWindows[i].tabs;
-                        for (var j = 0; j < safariTabs.length; j++) {
-                            safariTabs[j].page.dispatchMessage("burn", storeName);
-                        }
-                    }
-                    console.log("Database Variable Updated");
-                }
-            }
-        }
-
-        function visitUpdate(e) {
-            if (!e.target.url) return; // If the page is local
-
-            for (var i = 0; i < onDeck.length; i++) {
-                if (onDeck[i].url == e.target.url) {
-                    safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
-                    onDeck = onDeck.splice(i, 1);
-                    console.log("Removed " + e.target.url + " from onDeck");
-                    break;
-                }
-            }
-
-            var DOMStores = db.objectStoreNames;
-            var stores = [];
-            for (var i = 0; i < DOMStores.length; i++) {
-                stores.push(DOMStores[i]);
-            }
-
-            var updateCount = 0;
-            stores.forEach(function(value) {
-                console.log(e.target.url + " into " + value);
-                var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
-                var fetchNodeRequest = store.get(e.target.url);
-
-                fetchNodeRequest.onsuccess = function() {
-                    var fetchedNode = fetchNodeRequest.result;
-                    if (fetchedNode) {
-                        fetchedNode.title = e.target.title;
-                        fetchedNode.lastVisit = new Date();
-                        store.put(fetchedNode);
-                        updateCount++;
-                        if (updateCount == stores.length) refreshPopover();
-                    }
-                }
-            });
         }
 
         function popoverHandler(e) {

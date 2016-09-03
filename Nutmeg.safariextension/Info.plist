@@ -5,7 +5,7 @@
 	<key>Author</key>
 	<string>Benjamin Spiegel</string>
 	<key>Builder Version</key>
-	<string>11601.7.7</string>
+	<string>11601.7.7.1</string>
 	<key>CFBundleDisplayName</key>
 	<string>Nutmeg</string>
 	<key>CFBundleIdentifier</key>
@@ -21,12 +21,12 @@
 		<key>Database Quota</key>
 		<integer>10485760</integer>
 		<key>Global Page</key>
-		<string>index-db-V2.html</string>
+		<string>global-page.html</string>
 		<key>Popovers</key>
 		<array>
 			<dict>
 				<key>Filename</key>
-				<string>popover-debug3.html</string>
+				<string>popover-page.html</string>
 				<key>Height</key>
 				<integer>600</integer>
 				<key>Identifier</key>
@@ -57,7 +57,7 @@
 		<dict>
 			<key>End</key>
 			<array>
-				<string>injection-db.js</string>
+				<string>injected-script.js</string>
 			</array>
 		</dict>
 	</dict>
