@@ -29,8 +29,8 @@ function handleMessage(msgEvent) {
         //  alert(parentWindowURL);
         if (!blacklistCheck(parentWindowURL)) return;
         rootNode = msgEvent.message;
-        safari.self.tab.dispatchMessage("newNavNode", new NavNode("all-browsing", parentWindowURL, parentWindowURL, null));
-        safari.self.tab.dispatchMessage("newNavNode", new NavNode(rootNode, parentWindowURL, parentWindowURL, null));
+        safari.self.tab.dispatchMessage("newNavNode", new NavNode("all-browsing", parentWindowTitle, parentWindowURL, null));
+        safari.self.tab.dispatchMessage("newNavNode", new NavNode(rootNode, parentWindowTitle, parentWindowURL, null));
     } else if (msgEvent.name === "burn") {
         if (rootNode == msgEvent.message) rootNode = null;
     }
