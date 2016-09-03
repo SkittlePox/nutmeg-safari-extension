@@ -60,6 +60,7 @@
             padding-bottom: 2px;
             text-align: left;
             width: 100%;
+            height: 18px;
         }
 
         td {
@@ -189,9 +190,10 @@
         function popTable(storeInfo) {
             var newHTML = "";
             for (var i = 0; i < storeInfo.length; i++) {
-                newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"/><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
+                newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
             }
-            for (var i = 0; i < 27 - storeInfo.length; i++) {
+            console.log(storeInfo.length);
+            for (var i = 0; i < 26 - storeInfo.length; i++) {
                 newHTML += "<tr class=\"not-active\"><td></td><td></td><td></td></tr>";
             }
             rootList2.innerHTML = newHTML;
@@ -223,13 +225,34 @@
         function rootActiveToggle(e) {
             var roots = document.getElementsByTagName("tr");
             if (e.shiftKey) {
-                // Get position in parent and apply active classname to range, excluding the target itself because it is tagged later
+                var rows = e.target.parentElement.parentElement.children;
+                var targetRoot = e.target.parentElement.getAttribute("data-objStore");
+                var index1, index2;
+
+                for (var i = 0; i < rows.length; i++) {
+                    if (rows[i].getAttribute("data-objStore") == targetRoot || rows[i].className == "active") {
+                        index1 = i;
+                        break;
+                    }
+                }
+                for (var i = rows.length - 1; i >= 0; i--) {
+                    if (rows[i].getAttribute("data-objStore") == targetRoot || rows[i].className == "active") {
+                        index2 = i;
+                        break;
+                    }
+                }
+
+                for (var i = index1; i <= index2; i++) {
+                    rows[i].className = "active";
+                }
+            } else if (e.metaKey) {
+                e.target.parentElement.className = "active";
             } else {
                 for (var i = 0; i < roots.length; i++) {
                     roots[i].className = "";
                 }
+                e.target.parentElement.className = "active";
             }
-            e.target.parentElement.className = "active";
         }
 
         function imgActiveSet(elem, act) {
@@ -241,18 +264,19 @@
         }
 
         function newTree() {
-            // alert(safari.application.activeBrowserWindow.activeTab.url);
             safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("newTree", safari.application.activeBrowserWindow.activeTab.url.split("#")[0]);
         }
 
-        function deleteTree() {
+        function deleteTrees() {
             if (rootList1.hidden == false) {
                 var roots = document.getElementsByTagName("tr");
+                var toDelete = [];
                 for (var i = 0; i < roots.length; i++) {
                     if (roots[i].className == "active") {
-                        safari.extension.globalPage.contentWindow.deleteTree(roots[i].getAttribute("data-objStore"));
+                        toDelete.push(roots[i].getAttribute("data-objStore"));
                     }
                 }
+                safari.extension.globalPage.contentWindow.deleteTrees(toDelete);
             }
         }
     </script>
@@ -265,7 +289,7 @@
         <button id="forest" class="right">Your Trees</button>
     </div>
     <img title="Plant Tree" src="sapling.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
-    <img title="Burn Tree" src="delete.png" onclick="deleteTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
+    <img title="Burn Tree" src="delete.png" onclick="deleteTrees()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <br />
     <canvas id="sketch" data-processing-sources="Nutmeg_Processing.pde"></canvas>
     <table hidden id="rootList1">

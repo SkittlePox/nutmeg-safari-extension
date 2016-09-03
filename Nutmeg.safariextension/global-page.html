@@ -122,9 +122,9 @@
             }
         }
 
-        function deleteTree(storeName) {
+        function deleteTrees(storeNames) {
             if (db === undefined) return;
-            console.log("Attempting to delete store " + storeName)
+            console.log("Attempting to delete store(s) " + storeNames)
             db.close();
 
             var injectRequest = indexedDB.open(databaseName);
@@ -139,7 +139,9 @@
 
                 payloadRequest.onupgradeneeded = function(e2) {
                     var softDB = e2.target.result;
-                    softDB.deleteObjectStore(storeName);
+                    for (var i = 0; i < storeNames.length; i++) {
+                        softDB.deleteObjectStore(storeNames[i]);
+                    }
                     console.log("Store Deletion Successful");
                 }
 
@@ -150,7 +152,9 @@
                     for (var i = 0; i < safariWindows.length; i++) {
                         var safariTabs = safariWindows[i].tabs;
                         for (var j = 0; j < safariTabs.length; j++) {
-                            safariTabs[j].page.dispatchMessage("burn", storeName);
+                            for (var k = 0; k < storeNames.length; k++) {
+                                safariTabs[j].page.dispatchMessage("burn", storeName[k]);
+                            }
                         }
                     }
                     console.log("Database Variable Updated");
@@ -332,7 +336,7 @@
                             data.push(size.result);
                             info.push(data);
                             count++;
-                            console.log("Data push " + count + " out of " + sNames.length + ": " + info[info.length-1][2]);
+                            console.log("Data push " + count + " out of " + sNames.length + ": " + info[info.length - 1][2]);
                             if (count === sNames.length) {
                                 console.log("Populating popover");
                                 safari.extension.popovers[0].contentWindow.popTable(info);
