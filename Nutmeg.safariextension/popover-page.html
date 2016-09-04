@@ -302,6 +302,8 @@
                 processingInstance = Processing.getInstanceById('sketch');
             }
             console.log("Receiving tree");
+            var ctx = sketch.getContext("2d");
+            ctx.clearRect(0,0,sketch.width, sketch.height);
             processingInstance.display();
         }
     </script>

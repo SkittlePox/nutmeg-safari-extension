@@ -24,8 +24,12 @@ void display() {
       nodes.push(new Node(tree.nodes[i]));
     }
     Tree processingTree = new Tree(tree.root, nodes);
-    
+    clear();
     processingTree.display();
-    //nodes[0].display(100,100);
   }
+}
+
+void clear() {
+  var ctx = sketch.getContext("2d");
+  ctx.clearRect(0,0,sketch.width, sketch.height);
 }

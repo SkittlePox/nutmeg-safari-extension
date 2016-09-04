@@ -2,7 +2,8 @@ import java.util.HashMap;
 
 class Tree {
   HashMap<String, Node> nodeStore = new HashMap<String, Node>();
-  int depth = 0, availableWidth = 549;
+  int depth = 0, availableWidth = 600, availableHeight = 550;
+  int yDistance = 50, xDistanceMin = 50;
   String root;
   public Tree(String root, Node[] nodes) {
     this.root = root;
@@ -13,8 +14,10 @@ class Tree {
   
   public void display() {
     depth = findDepth(nodeStore.get(root));
-    fill(115);
-    text(depth, 210, 190);
+    
+    int layer = 0;
+    int drawHeight = (availableHeight / 2) - (depth * yDistance / 2);
+    nodeStore.get(root).display(availableWidth/2, drawHeight);
   }
   
   public int findDepth(Node n) {
