@@ -158,7 +158,7 @@
                         var safariTabs = safariWindows[i].tabs;
                         for (var j = 0; j < safariTabs.length; j++) {
                             for (var k = 0; k < storeNames.length; k++) {
-                                safariTabs[j].page.dispatchMessage("burn", storeName[k]);
+                                safariTabs[j].page.dispatchMessage("burn", storeNames[k]);
                             }
                         }
                     }
@@ -277,7 +277,7 @@
                     }
                 }
             }
-            if (navNode.root != "all-browsing" && !navNode.childURL) {
+            if (navNode.root != "all-browsing" && navNode.childURL) {
                 var isOnDeck = false;
                 for (var i = 0; i < onDeck.length; i++) {
                     if (onDeck[i].url == navNode.childURL && onDeck[i].root == navNode.root) {
@@ -285,7 +285,7 @@
                         break;
                     }
                 }
-                if (!isOnDeck && navNode.childURL != null) {
+                if (!isOnDeck && navNode.childURL) {
                     onDeck.push(new QueuedNode(navNode.childURL, navNode.root));
                     console.log("Adding " + navNode.childURL + " to onDeck");
                 }
