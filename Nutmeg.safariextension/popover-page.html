@@ -175,7 +175,14 @@
         }
     </style>
     <script>
+        var Tree = function(root, nodes) {
+            this.root = root;
+            this.nodes = nodes;
+        }
+
         var sketch, rootList1, rootList2;
+        var tree;
+        var processingInstance;
 
         function init() {
             var buttons = document.getElementsByTagName("button");
@@ -199,7 +206,10 @@
             rootList2.innerHTML = newHTML;
             var roots = document.getElementsByTagName("tr");
             for (var i = 1; i < roots.length; i++) {
-                if (roots[i].className != "not-active") roots[i].addEventListener("click", rootActiveToggle);
+                if (roots[i].className != "not-active") {
+                    roots[i].addEventListener("click", rootActiveToggle);
+                    roots[i].addEventListener("dblclick", requestTree);
+                }
             }
         }
 
@@ -246,7 +256,8 @@
                     rows[i].className = "active";
                 }
             } else if (e.metaKey) {
-                e.target.parentElement.className = "active";
+                if (e.target.parentElement.className == "") e.target.parentElement.className = "active";
+                else e.target.parentElement.className = "";
             } else {
                 for (var i = 0; i < roots.length; i++) {
                     roots[i].className = "";
@@ -278,6 +289,18 @@
                 }
                 safari.extension.globalPage.contentWindow.deleteTrees(toDelete);
             }
+        }
+
+        function requestTree(e) {
+            safari.extension.globalPage.contentWindow.deliverTree(e.target.parentElement.getAttribute("data-objStore"));
+        }
+
+        function treeIncoming(treeNode) {
+            tree = treeNode;
+            if (!processingInstance) {
+                processingInstance = Processing.getInstanceById('sketch');
+            }
+            processingInstance.test();
         }
     </script>
     <script src="processing.js"></script>

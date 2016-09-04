@@ -23,6 +23,11 @@
             this.lastVisit = lastVisit;
         }
 
+        var Tree = function(root, nodes) {
+            this.root = root;
+            this.nodes = nodes;
+        }
+
         var QueuedNode = function(url, root) {
             this.url = url;
             this.root = root;
@@ -240,7 +245,7 @@
                     refreshPopover();
                 });
             } else {
-                console.log(db);
+                // console.log(db);
                 var rootStore = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
                 var fetchParentRequest = rootStore.get(navNode.parentURL);
 
@@ -351,6 +356,26 @@
                     }
                 }
             });
+        }
+
+        function deliverTree(root) {
+            if (!root || db === undefined) return;
+            var treeNodes = [];
+            var rootStore = db.transaction([root], "readonly").objectStore(root); // Access object store
+            if (rootStore) {
+                var cursorRequest = rootStore.openCursor();
+                cursorRequest.onsuccess = function(e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        treeNodes.push(cursor.value);
+                        cursor.continue();
+                    } else {
+                        console.log("Collected tree nodes for root " + root);
+                        var tree = new Tree(root, treeNodes);
+                        safari.extension.popovers[0].contentWindow.treeIncoming(tree);
+                    }
+                }
+            }
         }
     </script>
 </body>
