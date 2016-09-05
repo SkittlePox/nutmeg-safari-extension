@@ -173,7 +173,10 @@
 
             for (var i = 0; i < onDeck.length; i++) {
                 if (onDeck[i].url == targetURL) {
-                    safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
+                    // Goes to newly opened page, not active tab
+                    // safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
+                    e.target.page.dispatchMessage("tag", onDeck[i].root);
+                    
                     onDeck = onDeck.splice(i, 1);
                     console.log("Removed " + targetURL + " from onDeck");
                     break;

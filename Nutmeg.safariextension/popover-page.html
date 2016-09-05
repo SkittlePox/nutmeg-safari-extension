@@ -287,6 +287,7 @@
                 for (var i = 0; i < roots.length; i++) {
                     if (roots[i].className == "active") {
                         toDelete.push(roots[i].getAttribute("data-objStore"));
+                        if(tree && tree.root == roots[i].getAttribute("data-objStore")) tree = null;
                     }
                 }
                 safari.extension.globalPage.contentWindow.deleteTrees(toDelete);

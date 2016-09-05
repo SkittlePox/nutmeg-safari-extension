@@ -26,9 +26,9 @@ class Tree {
   }
   
   public void displayNodeBasic(Node n, int coordX, int coordY, int d) {
-    //n.displayNode(coordX, coordY);
-    n.storeX = coordX;
-    n.storeY = coordY;
+    n.displayNode(coordX, coordY);  // This will do a simple display of nodes
+    //n.storeX = coordX;
+    //n.storeY = coordY;
     
     if (buffer[d] == null) buffer[d] = new ArrayList<Node>();
     buffer[d].add(n);
@@ -58,6 +58,23 @@ class Tree {
     //    buffer[i].get(j).displayNode();
     //  }
     //}
+  }
+  
+  public void shift(Node n, int coordXTransform, int coordYTransform) {
+    int indexY = -1, indexX = -1;
+    for(int i = 0; i < buffer.length; i++) {
+      for(int j = 0; j < buffer[i].size(); j++) {
+        if(buffer[i].get(j) == n) {
+          indexY = i;
+          indexX = j;
+          break;
+        }
+      }
+      if(indexY != -1) break;
+    }
+    if(indexY == -1) return;
+    
+    // TODO: Apply transform
   }
   
   public int findDepth(Node n) {
