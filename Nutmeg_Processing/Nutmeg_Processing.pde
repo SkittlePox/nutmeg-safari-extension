@@ -13,6 +13,7 @@ void setup() {
   fill(115);
   PFont font = loadFont("HelveticaNeue.ttf");
   textFont(font, 12);
+  textAlign(CENTER);
   //text("Parent", 210, 190);
   //text("Child", 240, 240);
 }
@@ -24,12 +25,7 @@ void display() {
       nodes.push(new Node(tree.nodes[i]));
     }
     Tree processingTree = new Tree(tree.root, nodes);
-    clear();
+    background(0,0,0,0);
     processingTree.display();
   }
-}
-
-void clear() {
-  var ctx = sketch.getContext("2d");
-  ctx.clearRect(0,0,sketch.width, sketch.height);
 }
