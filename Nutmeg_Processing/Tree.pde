@@ -21,14 +21,15 @@ class Tree {
     
     int layer = 0;
     int drawHeight = (availableHeight / 2) - (depth * yDistance / 2);
-    displayNodeBasic(nodeStore.get(root), availableWidth/2, drawHeight, 0);
+    firstPass(nodeStore.get(root), availableWidth/2, drawHeight, 0);
     revise();
+    finalDisplay();
   }
   
-  public void displayNodeBasic(Node n, int coordX, int coordY, int d) {
-    n.displayNode(coordX, coordY);  // This will do a simple display of nodes
-    //n.storeX = coordX;
-    //n.storeY = coordY;
+  public void firstPass(Node n, int coordX, int coordY, int d) {
+    //n.displayNode(coordX, coordY);  // This will do a simple display of nodes
+    n.storeX = coordX;
+    n.storeY = coordY;
     
     if (buffer[d] == null) buffer[d] = new ArrayList<Node>();
     buffer[d].add(n);
@@ -36,12 +37,12 @@ class Tree {
     if(d == 0) n.displayTitle(coordX, coordY);
     d++;
     int size = n.treeNode.childrenURLs.length;
-    if (n.treeNode.childrenURLs.length == 1) displayNodeBasic(nodeStore.get(n.treeNode.childrenURLs[0]), coordX, coordY + yDistance, d);
+    if (n.treeNode.childrenURLs.length == 1) firstPass(nodeStore.get(n.treeNode.childrenURLs[0]), coordX, coordY + yDistance, d);
     else {
       for(int i = 0; i < n.treeNode.childrenURLs.length; i++) {
         if (!drawn.contains(n.treeNode.childrenURLs[i])) {
           nodeStore.get(n.treeNode.childrenURLs[i]).parent = n;
-          displayNodeBasic(nodeStore.get(n.treeNode.childrenURLs[i]), coordX - (size-1)/2.0 * xDistanceMin + xDistanceMin * i, coordY + yDistance, d);
+          firstPass(nodeStore.get(n.treeNode.childrenURLs[i]), coordX - (size-1)/2.0 * xDistanceMin + xDistanceMin * i, coordY + yDistance, d);
         } 
       }
     }
@@ -58,23 +59,45 @@ class Tree {
     //    buffer[i].get(j).displayNode();
     //  }
     //}
+    
+    //for(int i = 1; i < buffer[1].size(); i++) {
+    //  shift(buffer[1].get(i), 20, 0);
+    //}
+    //swap(buffer[1].get(0), buffer[1].get(buffer[1].size()-1));
   }
   
   public void shift(Node n, int coordXTransform, int coordYTransform) {
+    ArrayList<Node> parents = new ArrayList<Node>();
+    parents.add(n);
+    n.storeX += coordXTransform;
+    n.storeY += coordYTransform;
     int indexY = -1, indexX = -1;
     for(int i = 0; i < buffer.length; i++) {
       for(int j = 0; j < buffer[i].size(); j++) {
-        if(buffer[i].get(j) == n) {
-          indexY = i;
-          indexX = j;
-          break;
+        int s = parents.size();
+        for(int r = 0; r < s; r++) {
+          if(buffer[i].get(j).parent == parents.get(r)) {
+            parents.add(buffer[i].get(j));
+            buffer[i].get(j).storeX += coordXTransform;
+            buffer[i].get(j).storeY += coordYTransform;
+          }
         }
       }
-      if(indexY != -1) break;
     }
-    if(indexY == -1) return;
-    
-    // TODO: Apply transform
+  }
+  
+  public void swap(Node a, Node b) {
+    int dist = b.storeX - a.storeX;
+    shift(a, dist, 0);
+    shift(b, -dist, 0);
+  }
+  
+  public void finalDisplay() {
+    for(int i = 0; i < buffer.length; i++) {
+      for(int j = 0; j < buffer[i].size(); j++) {
+        buffer[i].get(j).displayNode();
+      }
+    }
   }
   
   public int findDepth(Node n) {
