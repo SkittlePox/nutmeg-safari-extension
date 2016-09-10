@@ -42,6 +42,7 @@ class Tree {
       for(int i = 0; i < n.treeNode.childrenURLs.length; i++) {
         if (!drawn.contains(n.treeNode.childrenURLs[i])) {
           nodeStore.get(n.treeNode.childrenURLs[i]).parent = n;
+          n.childrenDisplayed++;
           firstPass(nodeStore.get(n.treeNode.childrenURLs[i]), coordX - (size-1)/2.0 * xDistanceMin + xDistanceMin * i, coordY + yDistance, d);
         } 
       }
@@ -64,6 +65,7 @@ class Tree {
     //  shift(buffer[1].get(i), 20, 0);
     //}
     //swap(buffer[1].get(0), buffer[1].get(buffer[1].size()-1));
+    autoSwap(nodeStore.get(root));
   }
   
   public void shift(Node n, int coordXTransform, int coordYTransform) {
@@ -86,10 +88,73 @@ class Tree {
     }
   }
   
+  public void autoSwap(Node parent) {
+    fill(115);
+    
+    int start = 99999, end = -1, row = -1;
+    ArrayList<Node> children = new ArrayList<Node>();
+    for(int i = 0; i < buffer.length; i++) {
+      for(int j = 0; j < buffer[i].size(); j++) {
+        if(buffer[i].get(j).parent == parent) {
+          if(j < start) start = j;
+          if(j > end) end = j;
+          if(row == -1) row = i;
+          children.add(buffer[i].get(j));
+        }
+      }
+      if(end != -1) break;
+    }
+    
+    if(end == -1) return;
+    
+    
+    childSort(children);
+    text("Getting here", 210, 190);  // TODO FIX THIS
+    
+    Node[] distChildren = new Node[children.size()];  // Distributed Children
+    int lowIndex = 0, highIndex = children.size()-1;
+    for(int i = 0; i < distChildren.length/2 + 1; i++) {
+      if(i % 2 == 0) {
+        distChildren[i] = children.get(highIndex);
+        highIndex--;
+        distChildren[distChildren.length-1-i] = children.get(highIndex);
+        highIndex--;
+      }
+      else {
+        distChildren[i] = children.get(lowIndex);
+        lowIndex++;
+        if(i != distChildren.length-1-i) {
+          distChildren[distChildren.length-1-i] = children.get(lowIndex);
+          lowIndex++;
+        }
+      }
+    }
+    
+    int tempIndex = 0;
+    for(int i = start; i <= end; i++) {
+      buffer[row].set(i, distChildren[tempIndex]);
+      tempIndex++;
+    }
+    
+    for(int i = 0; i < distChildren.length; i++) {
+      autoSwap(distChildren[i]);
+    }
+  }
+  
   public void swap(Node a, Node b) {
     int dist = b.storeX - a.storeX;
     shift(a, dist, 0);
     shift(b, -dist, 0);
+  }
+  
+  public void childSort(ArrayList<Node> children) {  // Sorts by smallest to largest amount of children
+    for(int i = 0; i < children.size(); i++) {
+      int smallIndex = i;
+      for(int j = i+1; j < children.size(); j++) {
+        if(children.get(j).childrenDisplayed < children.get(smallIndex).childrenDisplayed) smallIndex = j;
+      }
+      if(smallIndex != i) children.set(smallIndex, children.set(i, children.get(smallIndex)));
+    }
   }
   
   public void finalDisplay() {

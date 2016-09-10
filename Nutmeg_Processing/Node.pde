@@ -1,7 +1,8 @@
 class Node {
   public Object treeNode;
-  public int storeX = -1, storeY = -1;
+  public int storeX = -1, storeY = -1, childrenDisplayed = -1;
   public Node parent;
+  
   public Node(Object treeNode) {
     this.treeNode = treeNode;
   }
