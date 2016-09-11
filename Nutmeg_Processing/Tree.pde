@@ -7,6 +7,7 @@ class Tree {
   int depth = 0, availableWidth = 600, availableHeight = 550;
   int yDistance = 50, xDistanceMin = 50;
   String root;
+  
   public Tree(String root, Node[] nodes) {
     this.root = root;
     for(int i = 0; i < nodes.length; i++) {
@@ -21,8 +22,10 @@ class Tree {
     
     int layer = 0;
     int drawHeight = (availableHeight / 2) - (depth * yDistance / 2);
-    firstPass(nodeStore.get(root), availableWidth/2, drawHeight, 0);
-    revise();
+    createBuffer(nodeStore.get(root), 0);
+    autoSwap(nodeStore.get(root));
+    generateCoords(nodeStore.get(root), availableWidth/2, drawHeight);
+    //revise();
     finalDisplay();
   }
   
@@ -49,23 +52,45 @@ class Tree {
     }
   }
   
+  public void createBuffer(Node n, int row) {
+    if (buffer[row] == null) buffer[row] = new ArrayList<Node>();
+    buffer[row].add(n);
+    drawn.add(n);
+    row++;
+    
+    ArrayList<Node> children = new ArrayList<Node>();
+    
+    for(int i = 0; i < n.treeNode.childrenURLs.length; i++) {
+      if (!drawn.contains(n.treeNode.childrenURLs[i])) {
+        nodeStore.get(n.treeNode.childrenURLs[i]).parent = n;
+        children.add(nodeStore.get(n.treeNode.childrenURLs[i]));
+        n.childrenDisplayed++;
+      }
+    }
+    
+    for(Node c : children) {
+      createBuffer(c, row); 
+    }
+  }
+  
+  public void generateCoords(Node n, int coordX, int coordY) {
+    n.storeX = coordX;
+    n.storeY = coordY;
+    if(n.childrenDisplayed == 0) return;
+    int childIndex = 0;
+    
+    for(int i = 0; i < buffer.length; i++) {
+      for(int j = 0; j < buffer[i].size(); j++) {
+        if(buffer[i].get(j).parent == n) {
+          generateCoords(buffer[i].get(j), (int)(coordX - (n.childrenDisplayed-1)/2.0 * xDistanceMin + xDistanceMin * childIndex), coordY + yDistance);
+          childIndex++;
+        }
+      }
+    }
+  }
+  
   public void revise() {
-    //int fattestRow = 0;
-    //for(int i = 1; i < buffer.length; i--) {
-    //  if(buffer[i].size() > buffer[fattestRow].size()) fattestRow = i;
-    //}
     
-    //for(int i = 0; i < buffer.length; i++) {
-    //  for(int j = 0; j < buffer[i].size(); j++) {
-    //    buffer[i].get(j).displayNode();
-    //  }
-    //}
-    
-    //for(int i = 1; i < buffer[1].size(); i++) {
-    //  shift(buffer[1].get(i), 20, 0);
-    //}
-    //swap(buffer[1].get(0), buffer[1].get(buffer[1].size()-1));
-    autoSwap(nodeStore.get(root));
   }
   
   public void shift(Node n, int coordXTransform, int coordYTransform) {
@@ -89,11 +114,11 @@ class Tree {
   }
   
   public void autoSwap(Node parent) {
-    fill(115);
+    if(parent.childrenDisplayed == 0) return;
     
     int start = 99999, end = -1, row = -1;
     ArrayList<Node> children = new ArrayList<Node>();
-    for(int i = 0; i < buffer.length; i++) {
+    for(int i = 1; i < buffer.length; i++) {
       for(int j = 0; j < buffer[i].size(); j++) {
         if(buffer[i].get(j).parent == parent) {
           if(j < start) start = j;
@@ -104,21 +129,25 @@ class Tree {
       }
       if(end != -1) break;
     }
-    
-    if(end == -1) return;
-    
+       
+    if(children.size() == 1) {
+      autoSwap(children.get(0));
+      return;
+    }
     
     childSort(children);
-    text("Getting here", 210, 190);  // TODO FIX THIS
     
+    // TODO FIX THIS LOOP BELOW
     Node[] distChildren = new Node[children.size()];  // Distributed Children
     int lowIndex = 0, highIndex = children.size()-1;
     for(int i = 0; i < distChildren.length/2 + 1; i++) {
       if(i % 2 == 0) {
         distChildren[i] = children.get(highIndex);
         highIndex--;
-        distChildren[distChildren.length-1-i] = children.get(highIndex);
-        highIndex--;
+        if(i != distChildren.length-1-i) {
+          distChildren[distChildren.length-1-i] = children.get(highIndex);
+          highIndex--;
+        }
       }
       else {
         distChildren[i] = children.get(lowIndex);
@@ -129,6 +158,7 @@ class Tree {
         }
       }
     }
+    text("Getting here", 210, 190 + 10 * row);
     
     int tempIndex = 0;
     for(int i = start; i <= end; i++) {
@@ -148,12 +178,16 @@ class Tree {
   }
   
   public void childSort(ArrayList<Node> children) {  // Sorts by smallest to largest amount of children
-    for(int i = 0; i < children.size(); i++) {
+  text(children.size(), 50, 190);
+    for(int i = 0; i < children.size()-1; i++) {
       int smallIndex = i;
       for(int j = i+1; j < children.size(); j++) {
         if(children.get(j).childrenDisplayed < children.get(smallIndex).childrenDisplayed) smallIndex = j;
       }
-      if(smallIndex != i) children.set(smallIndex, children.set(i, children.get(smallIndex)));
+      if(smallIndex != i) {
+        Node small = children.get(smallIndex);
+        children.set(smallIndex, children.set(i, children.get(smallIndex)));
+      }
     }
   }
   

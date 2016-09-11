@@ -1,10 +1,12 @@
 class Node {
   public Object treeNode;
-  public int storeX = -1, storeY = -1, childrenDisplayed = -1;
+  public int storeX = -1, storeY = -1, childrenDisplayed = 0;
+  public ArrayList<Node> children;
   public Node parent;
   
   public Node(Object treeNode) {
     this.treeNode = treeNode;
+    children = new ArrayList<Node>();
   }
   
   public void displayNode(int x, int y) {
