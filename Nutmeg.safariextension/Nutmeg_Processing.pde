@@ -21,8 +21,8 @@ void setup() {
 void display() {
   if(tree != null) {
     var nodes = [];
-    for(int i = 0; i < tree.nodes.length; i++) {
-      nodes.push(new Node(tree.nodes[i]));
+    for(int i = 0; i < tree.nodes.length; i++) { 
+      if(tree.nodes[i]) nodes.push(new Node(tree.nodes[i]));
     }
     Tree processingTree = new Tree(tree.root, nodes);
     background(0,0,0,0);
@@ -80,8 +80,10 @@ class Tree {
     
     int layer = 0;
     int drawHeight = (availableHeight / 2) - (depth * yDistance / 2);
+    calcMeta(nodeStore.get(root));
+    drawn.clear();
     createBuffer(nodeStore.get(root), 0);
-    autoSwap(nodeStore.get(root));
+    //autoSwap(nodeStore.get(root));
     generateCoords(nodeStore.get(root), availableWidth/2, drawHeight);
     //revise();
     finalDisplay();
@@ -97,6 +99,7 @@ class Tree {
     drawn.add(n);
     if(d == 0) n.displayTitle(coordX, coordY);
     d++;
+    text("G", 200, 200);
     int size = n.treeNode.childrenURLs.length;
     if (n.treeNode.childrenURLs.length == 1) firstPass(nodeStore.get(n.treeNode.childrenURLs[0]), coordX, coordY + yDistance, d);
     else {
@@ -108,6 +111,19 @@ class Tree {
         } 
       }
     }
+  }
+  
+  public void calcMeta(Node n) {  // Finds which child nodes belong to which parent and that's it
+    drawn.add(n);
+    ArrayList<Node> children = new ArrayList<Node>();
+    for(int i = 0; i < n.treeNode.childrenURLs.length; i++) {
+      if (!drawn.contains(n.treeNode.childrenURLs[i])) {
+        //nodeStore.get(n.treeNode.childrenURLs[i]).parent = n;
+        n.childrenDisplayed++;
+        children.add(nodeStore.get(n.treeNode.childrenURLs[i]));
+      }
+    }
+    for(Node child : children) calcMeta(child);
   }
   
   public void createBuffer(Node n, int row) {
@@ -122,8 +138,12 @@ class Tree {
       if (!drawn.contains(n.treeNode.childrenURLs[i])) {
         nodeStore.get(n.treeNode.childrenURLs[i]).parent = n;
         children.add(nodeStore.get(n.treeNode.childrenURLs[i]));
-        n.childrenDisplayed++;
       }
+    }
+    
+    if(children.size() >= 3) {
+      childSort(children);
+      jumble(children);
     }
     
     for(Node c : children) {
@@ -132,6 +152,7 @@ class Tree {
   }
   
   public void generateCoords(Node n, int coordX, int coordY) {
+    ArrayList<Node> children = new ArrayList<Node>();
     n.storeX = coordX;
     n.storeY = coordY;
     if(n.childrenDisplayed == 0) return;
@@ -141,6 +162,7 @@ class Tree {
       for(int j = 0; j < buffer[i].size(); j++) {
         if(buffer[i].get(j).parent == n) {
           generateCoords(buffer[i].get(j), (int)(coordX - (n.childrenDisplayed-1)/2.0 * xDistanceMin + xDistanceMin * childIndex), coordY + yDistance);
+          children.add(buffer[i].get(j));
           childIndex++;
         }
       }
@@ -188,17 +210,21 @@ class Tree {
       if(end != -1) break;
     }
        
-    if(children.size() == 1) {
+    if(children.size() == 1 || children.size() == 2) {
+      text("Working fine", 210, 190 + 10 * row);
       autoSwap(children.get(0));
       return;
     }
     
     childSort(children);
-    // TODO FIX THIS
     
+    text("Getting here", 210, 190 + 10 * row);
+    
+    // TODO FIX THIS LOOP BELOW
     Node[] distChildren = new Node[children.size()];  // Distributed Children
     int lowIndex = 0, highIndex = children.size()-1;
     for(int i = 0; i < distChildren.length/2 + 1; i++) {
+      
       if(i % 2 == 0) {
         distChildren[i] = children.get(highIndex);
         highIndex--;
@@ -216,7 +242,7 @@ class Tree {
         }
       }
     }
-    text("Getting here", 210, 190 + 10 * row);
+    
     
     int tempIndex = 0;
     for(int i = start; i <= end; i++) {
@@ -236,16 +262,44 @@ class Tree {
   }
   
   public void childSort(ArrayList<Node> children) {  // Sorts by smallest to largest amount of children
-  text(children.size(), 50, 190);
-    for(int i = 0; i < children.size()-1; i++) {
-      int smallIndex = i;
-      for(int j = i+1; j < children.size(); j++) {
-        if(children.get(j).childrenDisplayed < children.get(smallIndex).childrenDisplayed) smallIndex = j;
+    ArrayList<Node> newChildren = new ArrayList<Node>();
+    
+    int lowest = 0;
+    while(children.size() != 0) {
+      lowest = 0;
+      for(int j = 0; j < children.size(); j++) {
+        if(children.get(j).childrenDisplayed < children.get(lowest).childrenDisplayed) lowest = j;
       }
-      if(smallIndex != i) {
-        Node small = children.get(smallIndex);
-        children.set(smallIndex, children.set(i, children.get(smallIndex)));
+      newChildren.add(children.get(lowest));
+      children.remove(children.get(lowest));
+    }
+    
+    children = newChildren;
+  }
+  
+  public void jumble(ArrayList<Node> children) {
+    Node[] newChildren = new Node[children.size()];
+    int smallIterator = 0, bigIterator = children.size()-1;
+    
+    for(int i = 0; i < children.size()/2; i++) {
+      if(i % 2 == 0) {
+        newChildren[i] = children.get(bigIterator);
+        bigIterator--;
+        newChildren[children.size()-1-i] = children.get(bigIterator);
+        bigIterator--;
       }
+      else {
+        newChildren[i] = children.get(smallIterator);
+        smallIterator++;
+        if(newChildren[children.size()-1-i] == null) {
+          newChildren[children.size()-1-i] = children.get(smallIterator);
+          smallIterator++;
+        }
+      }
+    }
+    
+    for(int i = 0; i < children.size(); i++) {
+      children.set(i, newChildren[i]);
     }
   }
   

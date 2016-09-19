@@ -21,8 +21,8 @@ void setup() {
 void display() {
   if(tree != null) {
     var nodes = [];
-    for(int i = 0; i < tree.nodes.length; i++) {
-      nodes.push(new Node(tree.nodes[i]));
+    for(int i = 0; i < tree.nodes.length; i++) { 
+      if(tree.nodes[i]) nodes.push(new Node(tree.nodes[i]));
     }
     Tree processingTree = new Tree(tree.root, nodes);
     background(0,0,0,0);
