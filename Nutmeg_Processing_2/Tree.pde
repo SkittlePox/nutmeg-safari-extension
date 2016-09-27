@@ -5,7 +5,7 @@ class Tree {
   public ArrayList<Node> checked;
   public ArrayList<Node>[] buffer;
   public Node rootNode;
-  public int depth = 1, spacingY = 50, spacingX = 50;
+  public int depth = 1, spacingY = 56, spacingX = 50;
   
   public Tree(String rootURL, Node[] comprisingNodes) {
     for(int i = 0; i < comprisingNodes.length; i++) {
@@ -23,7 +23,7 @@ class Tree {
     depth = calculateDepth();
     buffer = (ArrayList<Node>[])new ArrayList[depth];
     console.log("Depth calculated and buffer created");
-    int rootHeight = 300 - (depth * spacingY / 2);
+    int rootHeight = 250 - (depth * spacingY / 2);
     progenySort(rootNode.displayedChildren);
     console.log("Progeny sorted");
     progenyJumble(rootNode.displayedChildren);
@@ -78,7 +78,7 @@ class Tree {
     }
     else {
       for(int i = 0; i < size; i++) {
-        populateBuffer_GenerateCoordinates(n.displayedChildren.get(i), (int) (x - (size-1)/2.0 * spacingX + spacingX * i), y + spacingY); //FINISH THIS LINE AND REST OF METHOD
+        populateBuffer_GenerateCoordinates(n.displayedChildren.get(i), (int) (x - (size-1)/2.0 * spacingX + spacingX * i), y + spacingY);
       }
     }
   }
@@ -101,6 +101,7 @@ class Tree {
   }
   
   public void progenyJumble(ArrayList<Node> children) {
+    if(children.size() < 3) return;
     Node[] newChildren = new Node[children.size()];
     int smallIterator = 0, bigIterator = children.size()-1;
     
@@ -129,6 +130,9 @@ class Tree {
   public void bufferTouchUp() {
     for(int i = 2; i < buffer.length; i++) {
       spaceRow(i);
+    }
+    for(int i = buffer.length - 2; i > 0; i--) {
+      beautifyRow(i);
     }
   }
   
@@ -159,8 +163,26 @@ class Tree {
     }
   }
   
+  public void beautifyRow(int row) {
+    for(Node n : buffer[row]) {
+      if(n.displayedChildren.size() > 0) {
+        int sum = 0;
+        for(Node c : n.displayedChildren) {
+          sum += c.x;
+        }
+        n.x = (int) (sum / n.displayedChildren.size());
+      }
+    }
+  }
+  
   public void recursivelyDisplay(Node n) {
     n.displayBubble();
+    if(n.displayedParent != null) {
+      noFill();
+      stroke(115);
+      strokeWeight(5);
+      bezier(n.displayedParent.x, n.displayedParent.y + 15, n.displayedParent.x, n.y - 15, n.x, n.displayedParent.y + 15, n.x, n.y - 15);
+    }
     for(Node c : n.displayedChildren) recursivelyDisplay(c);
   }
   

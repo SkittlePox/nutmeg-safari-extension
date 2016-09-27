@@ -21,3 +21,5 @@ void display() {
   
   pTree.display();
 }
+
+// TODO Maybe use processing loop() functionality to active hovering
