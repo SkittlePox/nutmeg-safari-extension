@@ -10,4 +10,12 @@ class Node {
     allParents = new ArrayList<Node>();
     displayedChildren = new ArrayList<Node>();
   }
+  
+  public void displayBubble() {
+    noFill();
+    stroke(115);
+    strokeWeight(4);
+    ellipse(x,y,12,12);
+    fill(115);
+  }
 }

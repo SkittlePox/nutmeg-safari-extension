@@ -200,7 +200,7 @@
             for (var i = 0; i < storeInfo.length; i++) {
                 newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
             }
-            console.log(storeInfo.length);
+            // console.log(storeInfo.length);
             for (var i = 0; i < 26 - storeInfo.length; i++) {
                 newHTML += "<tr class=\"not-active\"><td></td><td></td><td></td></tr>";
             }
@@ -304,6 +304,7 @@
                 processingInstance = Processing.getInstanceById('sketch');
             }
             console.log("Receiving tree");
+            // console.log(tree);
             processingInstance.display();
         }
     </script>
@@ -318,7 +319,7 @@
     <img title="Plant Tree" src="sapling.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <img title="Burn Tree" src="delete.png" onclick="deleteTrees()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <br />
-    <canvas id="sketch" data-processing-sources="Nutmeg_Processing.pde"></canvas>
+    <canvas id="sketch" data-processing-sources="Nutmeg_Processing_2.pde"></canvas>
     <table hidden id="rootList1">
         <tr>
             <th>Name</th>

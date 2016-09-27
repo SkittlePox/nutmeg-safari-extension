@@ -1,3 +1,47 @@
+void setup() {
+  size(600, 549);
+  background(0,0,0,0);
+  fill(115);
+  PFont font = loadFont("HelveticaNeue.ttf");
+  textFont(font, 12);
+  textAlign(CENTER);
+}
+
+void display() {
+  if(tree == null) return;
+  var nodes = [];
+  for(int i = 0; i < tree.nodes.length; i++) {
+    nodes.push(new Node(tree.nodes[i]));
+  }
+  Tree pTree = new Tree(tree.root, nodes);
+  console.log("Getting past initialization");
+  pTree.setup();
+  console.log("Getting past setup");
+  background(0,0,0,0);
+  
+  pTree.display();
+}
+class Node {
+  public Object jsNode;
+  public ArrayList<Node> allChildren, allParents, displayedChildren;
+  public int row, x = 0, y = 0;
+  public Node displayedParent;
+  
+  public Node(Object jsNode) {
+    this.jsNode = jsNode;
+    allChildren = new ArrayList<Node>();
+    allParents = new ArrayList<Node>();
+    displayedChildren = new ArrayList<Node>();
+  }
+  
+  public void displayBubble() {
+    noFill();
+    stroke(115);
+    strokeWeight(4);
+    ellipse(x,y,12,12);
+    fill(115);
+  }
+}
 import java.util.HashMap;
 
 class Tree {

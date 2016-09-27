@@ -13,4 +13,11 @@ void display() {
   for(int i = 0; i < tree.nodes.length; i++) {
     nodes.push(new Node(tree.nodes[i]));
   }
+  Tree pTree = new Tree(tree.root, nodes);
+  console.log("Getting past initialization");
+  pTree.setup();
+  console.log("Getting past setup");
+  background(0,0,0,0);
+  
+  pTree.display();
 }
