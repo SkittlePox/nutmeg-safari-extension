@@ -5,7 +5,11 @@ void setup() {
   PFont font = loadFont("HelveticaNeue.ttf");
   textFont(font, 12);
   textAlign(CENTER);
+  rectMode(CENTER);
+  noLoop();
 }
+
+Tree pTree;
 
 void display() {
   if(tree == null) return;
@@ -13,7 +17,7 @@ void display() {
   for(int i = 0; i < tree.nodes.length; i++) {
     nodes.push(new Node(tree.nodes[i]));
   }
-  Tree pTree = new Tree(tree.root, nodes);
+  pTree = new Tree(tree.root, nodes);
   console.log("Getting past initialization");
   pTree.setup();
   console.log("Getting past setup");
@@ -21,11 +25,29 @@ void display() {
   
   pTree.display();
 }
+
+void draw() {
+  pTree.listen();
+}
+
+void mouseOver() {
+  loop();
+}
+
+void mouseOut() {
+  noLoop();
+}
+
+
+
+// TODO Maybe use processing loop() functionality to active hovering
 class Node {
   public Object jsNode;
   public ArrayList<Node> allChildren, allParents, displayedChildren;
   public int row, x = 0, y = 0;
+  public boolean titleShow = false, root = false;
   public Node displayedParent;
+  public Tree parentTree;
   
   public Node(Object jsNode) {
     this.jsNode = jsNode;
@@ -41,6 +63,32 @@ class Node {
     ellipse(x,y,12,12);
     fill(115);
   }
+  
+  public void displayTitle(boolean disp) {
+    if(disp == titleShow && !root) return;
+    if(disp || root) {
+      titleShow = true;
+      
+      fill(239);
+      noStroke();
+      rect(x, y-25, textWidth(jsNode.title)+10, 18, 5);
+      fill(115);
+      text(jsNode.title, x, y-20);
+    }
+    else {
+      titleShow = false;
+      background(0,0,0,0);
+      parentTree.display();
+    }
+  }
+  
+  public void listen() {
+    if(root) return;
+    if(mouseX > x - 12 && mouseX < x + 12 && mouseY > y - 12 && mouseY < y + 12) {
+      displayTitle(true);
+    }
+    else displayTitle(false);
+  }
 }
 import java.util.HashMap;
 
@@ -54,8 +102,10 @@ class Tree {
   public Tree(String rootURL, Node[] comprisingNodes) {
     for(int i = 0; i < comprisingNodes.length; i++) {
       allNodes.put(comprisingNodes[i].jsNode.url, comprisingNodes[i]);
+      comprisingNodes[i].parentTree = this;
     }
     rootNode = allNodes.get(rootURL);
+    rootNode.root = true;
     checked = new ArrayList<Node>();
   }
   
@@ -79,7 +129,19 @@ class Tree {
   }
   
   public void display() {
+    rootNode.displayTitle(true);
     recursivelyDisplay(rootNode);
+  }
+  
+  public void listen() {
+    recursivelyListen(rootNode);
+  }
+  
+  public void recursivelyListen(Node n) {
+    n.listen();
+    for(Node c : n.displayedChildren) {
+      recursivelyListen(c);
+    }
   }
   
   public void printBuffer() {
@@ -122,7 +184,7 @@ class Tree {
     }
     else {
       for(int i = 0; i < size; i++) {
-        populateBuffer_GenerateCoordinates(n.displayedChildren.get(i), (int) (x - (size-1)/2.0 * spacingX + spacingX * i), y + spacingY); //FINISH THIS LINE AND REST OF METHOD
+        populateBuffer_GenerateCoordinates(n.displayedChildren.get(i), (int) (x - (size-1)/2.0 * spacingX + spacingX * i), y + spacingY);
       }
     }
   }

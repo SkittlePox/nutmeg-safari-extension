@@ -209,10 +209,20 @@
             for (var i = 1; i < roots.length; i++) {
                 if (roots[i].className != "not-active") {
                     roots[i].addEventListener("click", rootActiveToggle);
-                    roots[i].addEventListener("dblclick", requestTree);
+                    roots[i].addEventListener("click", requestTree);
+                    roots[i].addEventListener("dblclick", treeView);
                 }
             }
             if(tree) safari.extension.globalPage.contentWindow.deliverTree(tree.root);
+        }
+
+        function treeView() {
+            var elements = document.getElementsByTagName("button");
+            elements[0].className = "left active";
+            elements[1].className = "right";
+            sketch.hidden = false;
+            rootList1.hidden = true;
+            rootList2.hidden = true;
         }
 
         function toggleActiveSwitcher(e) {
@@ -223,9 +233,7 @@
                 }
                 e.target.className += " active";
                 if (e.target.id == "tree") {
-                    sketch.hidden = false;
-                    rootList1.hidden = true;
-                    rootList2.hidden = true;
+                    treeView();
                 } else {
                     sketch.hidden = true;
                     rootList1.hidden = false;

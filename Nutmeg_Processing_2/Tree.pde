@@ -10,8 +10,10 @@ class Tree {
   public Tree(String rootURL, Node[] comprisingNodes) {
     for(int i = 0; i < comprisingNodes.length; i++) {
       allNodes.put(comprisingNodes[i].jsNode.url, comprisingNodes[i]);
+      comprisingNodes[i].parentTree = this;
     }
     rootNode = allNodes.get(rootURL);
+    rootNode.root = true;
     checked = new ArrayList<Node>();
   }
   
@@ -35,7 +37,19 @@ class Tree {
   }
   
   public void display() {
+    rootNode.displayTitle(true);
     recursivelyDisplay(rootNode);
+  }
+  
+  public void listen() {
+    recursivelyListen(rootNode);
+  }
+  
+  public void recursivelyListen(Node n) {
+    n.listen();
+    for(Node c : n.displayedChildren) {
+      recursivelyListen(c);
+    }
   }
   
   public void printBuffer() {
