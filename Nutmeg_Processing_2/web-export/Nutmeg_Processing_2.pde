@@ -38,14 +38,15 @@ void mouseOut() {
   noLoop();
 }
 
-
-
 // TODO Maybe use processing loop() functionality to active hovering
+import java.util.Date;
+
 class Node {
   public Object jsNode;
   public ArrayList<Node> allChildren, allParents, displayedChildren;
   public int row, x = 0, y = 0;
   public boolean titleShow = false, root = false;
+  public long displayUntil = new Date().getTime();
   public Node displayedParent;
   public Tree parentTree;
   
@@ -62,32 +63,43 @@ class Node {
     strokeWeight(4);
     ellipse(x,y,12,12);
     fill(115);
+    if(root) displayTitle();
   }
   
-  public void displayTitle(boolean disp) {
-    if(disp == titleShow && !root) return;
-    if(disp || root) {
+  public void displayTitleRequest(boolean request) {
+    if(request == titleShow && !request) return;
+    if(request) {
+      parentTree.displayBuffer[row] = this;
       titleShow = true;
-      
-      fill(239);
-      noStroke();
-      rect(x, y-25, textWidth(jsNode.title)+10, 18, 5);
-      fill(115);
-      text(jsNode.title, x, y-20);
-    }
+      displayUntil = new Date().getTime();
+      displayUntil += 1200;
+    } else if(new Date().getTime() < displayUntil && (parentTree.displayBuffer[row] == null || parentTree.displayBuffer[row] == this)) {
+      titleShow = true;
+      parentTree.displayBuffer[row] = this;
+    } else titleShow = false;
+    
+    if(titleShow) displayTitle();
     else {
-      titleShow = false;
+      if(parentTree.displayBuffer[row] == this) parentTree.displayBuffer[row] = null;
       background(0,0,0,0);
       parentTree.display();
     }
   }
   
+  public void displayTitle() {
+    fill(239);
+    noStroke();
+    rect(x, y-25, textWidth(jsNode.title)+10, 18, 5);
+    fill(115);
+    text(jsNode.title, x, y-20);
+  }
+  
   public void listen() {
     if(root) return;
     if(mouseX > x - 12 && mouseX < x + 12 && mouseY > y - 12 && mouseY < y + 12) {
-      displayTitle(true);
+      displayTitleRequest(true);
     }
-    else displayTitle(false);
+    else displayTitleRequest(false);
   }
 }
 import java.util.HashMap;
@@ -96,6 +108,7 @@ class Tree {
   public HashMap<String, Node> allNodes = new HashMap<String, Node>();
   public ArrayList<Node> checked;
   public ArrayList<Node>[] buffer;
+  public Node[] displayBuffer;
   public Node rootNode;
   public int depth = 1, spacingY = 56, spacingX = 50;
   
@@ -116,6 +129,7 @@ class Tree {
     console.log("Hierarchy generated");
     depth = calculateDepth();
     buffer = (ArrayList<Node>[])new ArrayList[depth];
+    displayBuffer = new Node[depth];
     console.log("Depth calculated and buffer created");
     int rootHeight = 250 - (depth * spacingY / 2);
     progenySort(rootNode.displayedChildren);
@@ -129,11 +143,16 @@ class Tree {
   }
   
   public void display() {
-    rootNode.displayTitle(true);
+    rootNode.displayTitleRequest(true);
     recursivelyDisplay(rootNode);
   }
   
   public void listen() {
+    for(Node n : displayBuffer) {
+      if(n != null) {
+        n.listen();
+      }
+    }
     recursivelyListen(rootNode);
   }
   

@@ -38,6 +38,4 @@ void mouseOut() {
   noLoop();
 }
 
-
-
 // TODO Maybe use processing loop() functionality to active hovering

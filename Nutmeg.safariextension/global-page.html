@@ -176,7 +176,7 @@
                     // Goes to newly opened page, not active tab
                     // safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
                     e.target.page.dispatchMessage("tag", onDeck[i].root);
-                    
+
                     onDeck = onDeck.splice(i, 1);
                     console.log("Removed " + targetURL + " from onDeck");
                     break;
@@ -329,11 +329,11 @@
 
                         var time;
                         if ((timeNow.getDate() == timeVar.getDate() || timeNow.getDate() == timeVar.getDate() + 1) && timeNow.getMonth() == timeVar.getMonth() && timeNow.getYear() == timeVar.getYear()) {
-                            time = (timeNow.getDate() == timeVar.getDate() ? "Today, " : "Yesterday, ") + (timeVar.getHours() % 12 + 1) + ":" + (timeVar.getMinutes() < 10 ? "0" + timeVar.getMinutes() : timeVar.getMinutes()) + " " + (
+                            time = (timeNow.getDate() == timeVar.getDate() ? "Today, " : "Yesterday, ") + (timeVar.getHours() % 13 + 1) + ":" + (timeVar.getMinutes() < 10 ? "0" + timeVar.getMinutes() : timeVar.getMinutes()) + " " + (
                                 timeVar.getHours() >= 12 ? "PM" : "AM");
                         } else {
                             var timeSplit = timeVar.toString().split(" ");
-                            time = timeSplit[1] + " " + timeSplit[2] + ", " + timeSplit[3] + " " + (timeVar.getHours() % 12 + 1) + ":" + (timeVar.getMinutes() < 10 ? "0" + timeVar.getMinutes() : timeVar.getMinutes()) + " " + (timeVar.getHours() >=
+                            time = timeSplit[1] + " " + timeSplit[2] + ", " + timeSplit[3] + " " + (timeVar.getHours() % 13 + 1) + ":" + (timeVar.getMinutes() < 10 ? "0" + timeVar.getMinutes() : timeVar.getMinutes()) + " " + (timeVar.getHours() >=
                                 12 ? "PM" : "AM");
                         }
 

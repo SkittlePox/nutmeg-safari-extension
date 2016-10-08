@@ -4,6 +4,7 @@ class Tree {
   public HashMap<String, Node> allNodes = new HashMap<String, Node>();
   public ArrayList<Node> checked;
   public ArrayList<Node>[] buffer;
+  public Node[] displayBuffer;
   public Node rootNode;
   public int depth = 1, spacingY = 56, spacingX = 50;
   
@@ -24,6 +25,7 @@ class Tree {
     console.log("Hierarchy generated");
     depth = calculateDepth();
     buffer = (ArrayList<Node>[])new ArrayList[depth];
+    displayBuffer = new Node[depth];
     console.log("Depth calculated and buffer created");
     int rootHeight = 250 - (depth * spacingY / 2);
     progenySort(rootNode.displayedChildren);
@@ -37,11 +39,16 @@ class Tree {
   }
   
   public void display() {
-    rootNode.displayTitle(true);
+    rootNode.displayTitleRequest(true);
     recursivelyDisplay(rootNode);
   }
   
   public void listen() {
+    for(Node n : displayBuffer) {
+      if(n != null) {
+        n.listen();
+      }
+    }
     recursivelyListen(rootNode);
   }
   
