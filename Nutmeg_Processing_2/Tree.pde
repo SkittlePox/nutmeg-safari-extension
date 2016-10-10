@@ -6,6 +6,7 @@ class Tree {
   public ArrayList<Node>[] buffer;
   public Node[] displayBuffer;
   public Node rootNode;
+  public Node hoverNode;
   public int depth = 1, spacingY = 56, spacingX = 50;
   
   public Tree(String rootURL, Node[] comprisingNodes) {
@@ -197,13 +198,13 @@ class Tree {
   }
   
   public void recursivelyDisplay(Node n) {
-    n.displayBubble();
     if(n.displayedParent != null) {
       noFill();
       stroke(115);
       strokeWeight(5);
       bezier(n.displayedParent.x, n.displayedParent.y + 15, n.displayedParent.x, n.y - 15, n.x, n.displayedParent.y + 15, n.x, n.y - 15);
     }
+    n.displayBubble();
     for(Node c : n.displayedChildren) recursivelyDisplay(c);
   }
   

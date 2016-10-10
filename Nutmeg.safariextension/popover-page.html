@@ -193,6 +193,7 @@
             sketch = document.getElementById("sketch");
             rootList1 = document.getElementById("rootList1");
             rootList2 = document.getElementById("rootList2");
+
         }
 
         function popTable(storeInfo) {
@@ -213,7 +214,7 @@
                     roots[i].addEventListener("dblclick", treeView);
                 }
             }
-            if(tree) safari.extension.globalPage.contentWindow.deliverTree(tree.root);
+            if (tree) safari.extension.globalPage.contentWindow.deliverTree(tree.root);
         }
 
         function treeView() {
@@ -223,6 +224,10 @@
             sketch.hidden = false;
             rootList1.hidden = true;
             rootList2.hidden = true;
+        }
+
+        function navigateToPage(url, newTab) {
+            safari.extension.globalPage.contentWindow.navigateToPage(url, newTab);
         }
 
         function toggleActiveSwitcher(e) {
@@ -295,7 +300,7 @@
                 for (var i = 0; i < roots.length; i++) {
                     if (roots[i].className == "active") {
                         toDelete.push(roots[i].getAttribute("data-objStore"));
-                        if(tree && tree.root == roots[i].getAttribute("data-objStore")) tree = null;
+                        if (tree && tree.root == roots[i].getAttribute("data-objStore")) tree = null;
                     }
                 }
                 safari.extension.globalPage.contentWindow.deleteTrees(toDelete);

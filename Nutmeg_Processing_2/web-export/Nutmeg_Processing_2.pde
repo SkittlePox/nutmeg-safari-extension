@@ -30,6 +30,12 @@ void draw() {
   pTree.listen();
 }
 
+void mouseClicked() {
+  if(pTree.hoverNode != null) {
+    pTree.hoverNode.navigate(true);
+  }
+}
+
 void mouseOver() {
   loop();
 }
@@ -64,6 +70,7 @@ class Node {
     ellipse(x,y,12,12);
     fill(115);
     if(root) displayTitle();
+    if(titleShow) displayTitle();
   }
   
   public void displayTitleRequest(boolean request) {
@@ -89,17 +96,25 @@ class Node {
   public void displayTitle() {
     fill(239);
     noStroke();
-    rect(x, y-25, textWidth(jsNode.title)+10, 18, 5);
+    rect(x, y-25, textWidth(jsNode.title != null ? jsNode.title : jsNode.url)+10, 18, 10);
     fill(115);
-    text(jsNode.title, x, y-20);
+    text(jsNode.title != null ? jsNode.title : jsNode.url, x, y-20);
   }
   
   public void listen() {
     if(root) return;
     if(mouseX > x - 12 && mouseX < x + 12 && mouseY > y - 12 && mouseY < y + 12) {
+      parentTree.hoverNode = this;
       displayTitleRequest(true);
     }
-    else displayTitleRequest(false);
+    else {
+      if(parentTree.hoverNode == this) parentTree.hoverNode = null;
+      displayTitleRequest(false);
+    }
+  }
+  
+  public void navigate(boolean newTab) {
+    navigateToPage(jsNode.url, newTab);
   }
 }
 import java.util.HashMap;
@@ -110,6 +125,7 @@ class Tree {
   public ArrayList<Node>[] buffer;
   public Node[] displayBuffer;
   public Node rootNode;
+  public Node hoverNode;
   public int depth = 1, spacingY = 56, spacingX = 50;
   
   public Tree(String rootURL, Node[] comprisingNodes) {
@@ -301,13 +317,13 @@ class Tree {
   }
   
   public void recursivelyDisplay(Node n) {
-    n.displayBubble();
     if(n.displayedParent != null) {
       noFill();
       stroke(115);
       strokeWeight(5);
       bezier(n.displayedParent.x, n.displayedParent.y + 15, n.displayedParent.x, n.y - 15, n.x, n.displayedParent.y + 15, n.x, n.y - 15);
     }
+    n.displayBubble();
     for(Node c : n.displayedChildren) recursivelyDisplay(c);
   }
   

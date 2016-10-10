@@ -23,6 +23,7 @@ class Node {
     ellipse(x,y,12,12);
     fill(115);
     if(root) displayTitle();
+    if(titleShow) displayTitle();
   }
   
   public void displayTitleRequest(boolean request) {
@@ -48,16 +49,24 @@ class Node {
   public void displayTitle() {
     fill(239);
     noStroke();
-    rect(x, y-25, textWidth(jsNode.title)+10, 18, 5);
+    rect(x, y-25, textWidth(jsNode.title != null ? jsNode.title : jsNode.url)+10, 18, 10);
     fill(115);
-    text(jsNode.title, x, y-20);
+    text(jsNode.title != null ? jsNode.title : jsNode.url, x, y-20);
   }
   
   public void listen() {
     if(root) return;
     if(mouseX > x - 12 && mouseX < x + 12 && mouseY > y - 12 && mouseY < y + 12) {
+      parentTree.hoverNode = this;
       displayTitleRequest(true);
     }
-    else displayTitleRequest(false);
+    else {
+      if(parentTree.hoverNode == this) parentTree.hoverNode = null;
+      displayTitleRequest(false);
+    }
+  }
+  
+  public void navigate(boolean newTab) {
+    navigateToPage(jsNode.url, newTab);
   }
 }

@@ -380,6 +380,16 @@
                 }
             }
         }
+
+        function navigateToPage(url, newTab) {
+            if (!newTab) {
+                safari.application.activeBrowserWindow.activeTab.url = url;
+                safari.extension.popovers[0].hide();
+            } else {
+                var tab = safari.application.activeBrowserWindow.openTab();
+                tab.url = url;
+            }
+        }
     </script>
 </body>
 

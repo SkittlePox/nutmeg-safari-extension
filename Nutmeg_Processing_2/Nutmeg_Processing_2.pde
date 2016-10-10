@@ -30,6 +30,12 @@ void draw() {
   pTree.listen();
 }
 
+void mouseClicked() {
+  if(pTree.hoverNode != null) {
+    pTree.hoverNode.navigate(true);
+  }
+}
+
 void mouseOver() {
   loop();
 }
