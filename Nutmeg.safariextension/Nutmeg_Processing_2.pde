@@ -159,7 +159,7 @@ class Tree {
   
   public void display() {
     rootNode.displayTitleRequest(true);
-    recursivelyDisplay(rootNode);
+    recursivelyDisplay(rootNode, false, 1);
   }
   
   public void listen() {
@@ -315,15 +315,26 @@ class Tree {
     }
   }
   
-  public void recursivelyDisplay(Node n) {
+  public void recursivelyDisplay(Node n, boolean overArch, int paddingSwap) {
     if(n.displayedParent != null) {
       noFill();
       stroke(115);
       strokeWeight(5);
-      bezier(n.displayedParent.x, n.displayedParent.y + 15, n.displayedParent.x, n.y - 15, n.x, n.displayedParent.y + 15, n.x, n.y - 15);
+      if(!overArch) bezier(n.displayedParent.x, n.displayedParent.y + 15, n.displayedParent.x, n.y - 15, n.x, n.displayedParent.y + 15, n.x, n.y - 15);
+      else bezier(n.displayedParent.x + 15*paddingSwap, n.displayedParent.y, (int)((n.x+n.displayedParent.x)/2), n.displayedParent.y, n.x, n.displayedParent.y + 15, n.x, n.y - 15);
     }
     n.displayBubble();
-    for(Node c : n.displayedChildren) recursivelyDisplay(c);
+    //for(Node c : n.displayedChildren) recursivelyDisplay(c);
+    int leftSide = -1;
+    int rightSide = n.displayedChildren.size();
+    if(n.displayedChildren.size() > 8) {
+        leftSide = (int)((n.displayedChildren.size()-8)/2);
+        rightSide = -1*(int)((n.displayedChildren.size()-7)/2)-1 + n.displayedChildren.size();
+        console.log(leftSide + " " + rightSide);
+    }
+    for (int i = 0; i < n.displayedChildren.size(); i++) {
+      recursivelyDisplay(n.displayedChildren.get(i), (i <= leftSide || i >= rightSide), i < n.displayedChildren.size()/2 ? -1 : 1);
+    }
   }
   
   public void graphicalSwap(Node a, Node b) {
