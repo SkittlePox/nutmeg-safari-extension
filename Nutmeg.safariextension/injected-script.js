@@ -68,6 +68,8 @@ try {
     }
     console.log("Accessing higher page");
     console.log("Injected " + count + " listeners");
+    if(rootNode) console.log("root is " + rootNode);
+    else console.log("No root");
 } catch (e) {
     parentWindowURL = document.URL.split("#")[0];
     parentWindowTitle = (document.title ? document.title : document.URL.split("/")[2]);

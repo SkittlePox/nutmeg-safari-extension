@@ -55,14 +55,13 @@ class Node {
   }
   
   public void listen() {
-    if(root) return;
     if(mouseX > x - 12 && mouseX < x + 12 && mouseY > y - 12 && mouseY < y + 12) {
       parentTree.hoverNode = this;
-      displayTitleRequest(true);
+      if(!root) displayTitleRequest(true);
     }
     else {
       if(parentTree.hoverNode == this) parentTree.hoverNode = null;
-      displayTitleRequest(false);
+      if(!root) displayTitleRequest(false);
     }
   }
   

@@ -227,7 +227,7 @@
         }
 
         function navigateToPage(url, newTab) {
-            safari.extension.globalPage.contentWindow.navigateToPage(url, newTab);
+            safari.extension.globalPage.contentWindow.navigateToPage(url, newTab, tree.root);
         }
 
         function toggleActiveSwitcher(e) {

@@ -27,7 +27,7 @@ void display() {
 }
 
 void draw() {
-  pTree.listen();
+  if(pTree != null) pTree.listen();
 }
 
 void mouseClicked() {

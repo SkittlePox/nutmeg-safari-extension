@@ -8,7 +8,6 @@
     <script>
         var databaseName = "nutmeg-stash";
         var db;
-        var onDeck = [];
         connect2DB();
 
         safari.application.addEventListener("message", incomingMessage, false);
@@ -21,6 +20,11 @@
             this.childrenURLs = childrenURLs;
             this.firstVisit = firstVisit;
             this.lastVisit = lastVisit;
+        }
+
+        var RecentStoreNode = function(url, root) {
+            this.url = url;
+            this.root = root;
         }
 
         var Tree = function(root, nodes) {
@@ -91,6 +95,7 @@
                 payloadRequest.onsuccess = function(e2) {
                     db = e2.target.result;
                     refreshPopover();
+                    localStorage.clear();   // Clear localStorage
                     console.log("Database Variable Updated");
                 }
             }
@@ -170,42 +175,11 @@
         function visitUpdate(e) {
             if (!e.target.url) return; // If the page is local
             var targetURL = e.target.url.split("#")[0];
+            console.log("Page visited: " + targetURL);
 
-            for (var i = 0; i < onDeck.length; i++) {
-                if (onDeck[i].url == targetURL) {
-                    // Goes to newly opened page, not active tab
-                    // safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("tag", onDeck[i].root);
-                    e.target.page.dispatchMessage("tag", onDeck[i].root);
-
-                    onDeck = onDeck.splice(i, 1);
-                    console.log("Removed " + targetURL + " from onDeck");
-                    break;
-                }
+            if(localStorage.getItem(targetURL)) {
+                e.target.page.dispatchMessage("tag", localStorage.getItem(targetURL));
             }
-
-            var DOMStores = db.objectStoreNames;
-            var stores = [];
-            for (var i = 0; i < DOMStores.length; i++) {
-                stores.push(DOMStores[i]);
-            }
-
-            var updateCount = 0;
-            stores.forEach(function(value) {
-                console.log(targetURL + " into " + value);
-                var store = db.transaction([value], "readwrite").objectStore(value); // Access object store
-                var fetchNodeRequest = store.get(targetURL);
-
-                fetchNodeRequest.onsuccess = function() {
-                    var fetchedNode = fetchNodeRequest.result;
-                    if (fetchedNode) {
-                        fetchedNode.title = e.target.title;
-                        fetchedNode.lastVisit = new Date();
-                        store.put(fetchedNode);
-                        updateCount++;
-                        if (updateCount == stores.length) refreshPopover();
-                    }
-                }
-            });
         }
 
         function incomingMessage(e) {
@@ -281,17 +255,7 @@
                 }
             }
             if (navNode.root != "all-browsing" && navNode.childURL) {
-                var isOnDeck = false;
-                for (var i = 0; i < onDeck.length; i++) {
-                    if (onDeck[i].url == navNode.childURL && onDeck[i].root == navNode.root) {
-                        isOnDeck = true;
-                        break;
-                    }
-                }
-                if (!isOnDeck && navNode.childURL) {
-                    onDeck.push(new QueuedNode(navNode.childURL, navNode.root));
-                    console.log("Adding " + navNode.childURL + " to onDeck");
-                }
+                localStorage.setItem(navNode.childURL, navNode.root);
             }
         }
 
@@ -309,8 +273,8 @@
                 console.log("No trees");
                 return;
             }
-            for (var i = 1; i < DOMNames.length; i++) {
-                sNames.push(DOMNames[i]);
+            for (var i = 0; i < DOMNames.length; i++) {
+                if (DOMNames[i] != "all-browsing") sNames.push(DOMNames[i]);
             }
 
             var count = 0;
@@ -381,7 +345,7 @@
             }
         }
 
-        function navigateToPage(url, newTab) {
+        function navigateToPage(url, newTab, root) {
             if (!newTab) {
                 safari.application.activeBrowserWindow.activeTab.url = url;
                 safari.extension.popovers[0].hide();
