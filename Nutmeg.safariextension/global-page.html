@@ -213,6 +213,7 @@
 
         function newNavNode(navNode) {
             if (!db.objectStoreNames.contains(navNode.root)) {
+                localStorage.setItem(navNode.root, navNode.root);
                 newObjStore(navNode.root, navNode, function(navNode) { // Ugh this is dirty
                     var rootStore = db.transaction([navNode.root], "readwrite").objectStore(navNode.root); // Access object store
                     var fetchParentRequest = rootStore.get(navNode.parentURL);
@@ -245,7 +246,6 @@
                         }
                     }
 
-                    if(navNode.root != "all-browsing") localStorage.setItem(navNode.root, navNode.root);
                     refreshPopover();
                 });
             } else {
