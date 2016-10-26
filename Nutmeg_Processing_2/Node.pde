@@ -32,7 +32,7 @@ class Node {
       parentTree.displayBuffer[row] = this;
       titleShow = true;
       displayUntil = new Date().getTime();
-      displayUntil += 1200;
+      displayUntil += 2000;
     } else if(new Date().getTime() < displayUntil && (parentTree.displayBuffer[row] == null || parentTree.displayBuffer[row] == this)) {
       titleShow = true;
       parentTree.displayBuffer[row] = this;

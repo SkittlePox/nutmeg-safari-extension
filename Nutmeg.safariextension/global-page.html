@@ -380,6 +380,7 @@
             } else {
                 var tab = safari.application.activeBrowserWindow.openTab();
                 tab.url = url;
+                safari.extension.popovers[0].contentWindow.focus();
             }
         }
     </script>

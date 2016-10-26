@@ -76,7 +76,7 @@
         }
 
         td:first-child {
-            width: 300px;
+            width: 290px;
         }
 
         th:first-child {
@@ -84,11 +84,11 @@
         }
 
         td:nth-child(2) {
-            width: 120px;
+            width: 130px;
         }
 
         th:nth-child(2) {
-            width: 90px;
+            width: 100px;
         }
 
         td:nth-child(3),
@@ -184,6 +184,28 @@
         var sketch, rootList1, rootList2;
         var tree;
         var processingInstance;
+        var activeRootURL;
+        var meta = false;
+
+        window.onkeydown = function(e) {
+            var key = e.keyCode ? e.keyCode : e.which;
+            if(key == 91) {
+                meta = true;
+                console.log("Meta Down");
+            }
+        }
+
+        window.onkeyup = function(e) {
+            var key = e.keyCode ? e.keyCode : e.which;
+            if(key == 91) {
+                meta = false;
+                console.log("Meta Up");
+            }
+        }
+
+        window.onclick = function(e) {
+            console.log("Clicked");
+        }
 
         function init() {
             var buttons = document.getElementsByTagName("button");
@@ -193,14 +215,17 @@
             sketch = document.getElementById("sketch");
             rootList1 = document.getElementById("rootList1");
             rootList2 = document.getElementById("rootList2");
-
+            console.log("New Page")
         }
 
         function popTable(storeInfo) {
             var newHTML = "";
+            var activeExists = false;
             for (var i = 0; i < storeInfo.length; i++) {
                 newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
+                if(storeInfo[i][2] == activeRootURL) activeExists = true;
             }
+            if(!activeExists) activeRootURL = null;
             // console.log(storeInfo.length);
             for (var i = 0; i < 26 - storeInfo.length; i++) {
                 newHTML += "<tr class=\"not-active\"><td></td><td></td><td></td></tr>";
@@ -214,7 +239,8 @@
                     roots[i].addEventListener("dblclick", treeView);
                 }
             }
-            if (tree) safari.extension.globalPage.contentWindow.deliverTree(tree.root);
+            if (activeRootURL) safari.extension.globalPage.contentWindow.deliverTree(activeRootURL);
+            else if (tree) safari.extension.globalPage.contentWindow.deliverTree(tree.root);
         }
 
         function treeView() {
@@ -227,7 +253,7 @@
         }
 
         function navigateToPage(url, newTab) {
-            safari.extension.globalPage.contentWindow.navigateToPage(url, newTab, tree.root);
+            safari.extension.globalPage.contentWindow.navigateToPage(url, meta, tree.root);
         }
 
         function toggleActiveSwitcher(e) {
@@ -291,6 +317,7 @@
 
         function newTree() {
             safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("newTree", safari.application.activeBrowserWindow.activeTab.url.split("#")[0]);
+            activeRootURL = safari.application.activeBrowserWindow.activeTab.url.split("#")[0];
         }
 
         function deleteTrees() {
@@ -326,21 +353,21 @@
 
 <body onload="init()" class="unselectable">
     <div>
-        <button id="tree" class="left active">Open Tree</button>
-        <button id="forest" class="right">Your Trees</button>
+        <button id="tree" class="left">Open Tree</button>
+        <button id="forest" class="right active">Your Trees</button>
     </div>
     <img title="Plant Tree" src="sapling.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <img title="Burn Tree" src="delete.png" onclick="deleteTrees()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <br />
-    <canvas id="sketch" data-processing-sources="Nutmeg_Processing_2.pde"></canvas>
-    <table hidden id="rootList1">
+    <canvas hidden id="sketch" data-processing-sources="Nutmeg_Processing_2.pde"></canvas>
+    <table id="rootList1">
         <tr>
             <th>Name</th>
             <th>Date Visited</th>
             <th>Size</th>
         </tr>
     </table>
-    <table hidden id="rootList2">
+    <table id="rootList2">
     </table>
 </body>
 

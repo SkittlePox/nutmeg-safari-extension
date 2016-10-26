@@ -31,7 +31,7 @@ void draw() {
 }
 
 void mouseClicked() {
-  if(pTree.hoverNode != null) {
+  if(pTree.hoverNode != null && mouseButton == LEFT) {
     pTree.hoverNode.navigate(true);
   }
 }
@@ -43,5 +43,3 @@ void mouseOver() {
 void mouseOut() {
   noLoop();
 }
-
-// TODO Maybe use processing loop() functionality to active hovering
