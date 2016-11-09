@@ -17,6 +17,7 @@
         var Node = function(url, title, childrenURLs, firstVisit, lastVisit) {
             this.url = url;
             this.title = title;
+            this.nick = title;
             this.childrenURLs = childrenURLs;
             this.firstVisit = firstVisit;
             this.lastVisit = lastVisit;
@@ -314,7 +315,7 @@
                 fetchNodeRequest.onsuccess = function() {
                     var fetchedNode = fetchNodeRequest.result;
                     if (fetchedNode) {
-                        var data = [fetchedNode.title];
+                        var data = [fetchedNode.nick];
                         var timeVar = fetchedNode.lastVisit;
                         var timeNow = new Date();
 
@@ -369,6 +370,20 @@
                         var tree = new Tree(root, treeNodes);
                         safari.extension.popovers[0].contentWindow.treeIncoming(tree);
                     }
+                }
+            }
+        }
+
+        function setNick(objStore, nick) {
+            var store = db.transaction([objStore], "readwrite").objectStore(objStore); // Access object store
+            var fetchNodeRequest = store.get(objStore);
+
+            fetchNodeRequest.onsuccess = function() {
+                var fetchedNode = fetchNodeRequest.result;
+                if (fetchedNode) {
+                    fetchedNode.nick = nick;
+                    store.put(fetchedNode);
+                    refreshPopover();
                 }
             }
         }

@@ -36,6 +36,10 @@
             table-layout: fixed;
         }
 
+        textarea {
+            margin: 0px;
+        }
+
         #rootList2 {
             border-top: none;
             overflow-y: scroll;
@@ -186,25 +190,25 @@
         var processingInstance;
         var activeRootURL;
         var meta = false;
+        var editName = false;
 
         window.onkeydown = function(e) {
             var key = e.keyCode ? e.keyCode : e.which;
-            if(key == 91) {
+            if (key == 91) {
                 meta = true;
                 console.log("Meta Down");
+            }
+            if (key == 13) {
+                renameSelected();
             }
         }
 
         window.onkeyup = function(e) {
             var key = e.keyCode ? e.keyCode : e.which;
-            if(key == 91) {
+            if (key == 91) {
                 meta = false;
                 console.log("Meta Up");
             }
-        }
-
-        window.onclick = function(e) {
-            console.log("Clicked");
         }
 
         function init() {
@@ -215,7 +219,7 @@
             sketch = document.getElementById("sketch");
             rootList1 = document.getElementById("rootList1");
             rootList2 = document.getElementById("rootList2");
-            console.log("New Page")
+            console.log("New Page");
         }
 
         function popTable(storeInfo) {
@@ -223,9 +227,9 @@
             var activeExists = false;
             for (var i = 0; i < storeInfo.length; i++) {
                 newHTML += "<tr data-objStore=\"" + storeInfo[i][2] + "\"><td>" + storeInfo[i][0] + "</td><td>" + storeInfo[i][1] + "</td><td>" + storeInfo[i][3] + "</td></tr>";
-                if(storeInfo[i][2] == activeRootURL) activeExists = true;
+                if (storeInfo[i][2] == activeRootURL) activeExists = true;
             }
-            if(!activeExists) activeRootURL = null;
+            if (!activeExists) activeRootURL = null;
             // console.log(storeInfo.length);
             for (var i = 0; i < 26 - storeInfo.length; i++) {
                 newHTML += "<tr class=\"not-active\"><td></td><td></td><td></td></tr>";
@@ -244,6 +248,7 @@
         }
 
         function treeView() {
+            if(editName) return;
             var elements = document.getElementsByTagName("button");
             elements[0].className = "left active";
             elements[1].className = "right";
@@ -338,6 +343,35 @@
             safari.extension.globalPage.contentWindow.deliverTree(e.target.parentElement.getAttribute("data-objStore"));
         }
 
+        function renameSelected() {
+            if (!rootList1.hidden) {
+                var roots = document.getElementsByTagName("tr");
+                var rootBox, rootCount = 0;
+
+                for (var i = 0; i < roots.length; i++) {
+                    if (roots[i].className == "active") {
+                        rootBox = roots[i];
+                        rootCount++;
+                        if (rootCount > 1) return;
+                    }
+                }
+
+                if (rootBox) {
+                    if (editName) {
+                        editName = false;
+                        activeRootURL = rootBox.getAttribute("data-objStore");
+                        safari.extension.globalPage.contentWindow.setNick(rootBox.getAttribute("data-objStore"), rootBox.childNodes[0].childNodes[0].value);
+                    } else {
+                        editName = true;
+                        console.log("Renaming " + rootBox.getAttribute("data-objStore"));
+                        var name = rootBox.childNodes[0].innerHTML;
+                        console.log(rootBox.childNodes);
+                        rootBox.childNodes[0].innerHTML = "<textarea onkeydown=\"renameSelected()\" rows=\"1\" cols=\"50\">" + rootBox.childNodes[0].innerHTML + "</textarea>";
+                    }
+                }
+            }
+        }
+
         function treeIncoming(treeNode) {
             tree = treeNode;
             if (!processingInstance) {
@@ -356,8 +390,8 @@
         <button id="tree" class="left">Open Tree</button>
         <button id="forest" class="right active">Your Trees</button>
     </div>
-    <img title="Plant Tree" src="sapling.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
-    <img title="Burn Tree" src="delete.png" onclick="deleteTrees()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
+    <img id="plant" title="Plant Tree" src="sapling.png" onclick="newTree()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
+    <img id="burn" title="Burn Tree" src="delete.png" onclick="deleteTrees()" onmousedown="imgActiveSet(this, true)" onmouseup="imgActiveSet(this, false)" onmouseout="imgActiveSet(this, false)"></img>
     <br />
     <canvas hidden id="sketch" data-processing-sources="Nutmeg_Processing_2.pde"></canvas>
     <table id="rootList1">
